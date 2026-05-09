@@ -2,227 +2,344 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AutoProtect</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoProtect | Protección vehicular</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="app">
+  <main class="app">
 
-  <!-- HEADER -->
-  <header class="topbar">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">AP</div>
+        <div>
+          <h1>AutoProtect</h1>
+          <p>Tu red de protección vehicular</p>
+        </div>
+      </div>
 
-    <div class="brand">
-      <div class="logo">AP</div>
+      <nav class="nav">
+        <a class="active" href="#">Inicio</a>
+        <a href="#">Autos robados</a>
+        <a href="#">Localizados</a>
+        <a href="#">Recuperados</a>
+        <a href="#">Comunidad</a>
+        <a href="#">Cómo funciona</a>
+        <a href="#">Contacto</a>
+      </nav>
+
+      <div class="client-area">
+        <div class="phone">
+          <span>Central de recuperación</span>
+          <strong>55 1234 5678</strong>
+        </div>
+        <button>Área de clientes</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <h2>
+          Protegemos tu vehículo,<br />
+          estés donde estés.
+        </h2>
+
+        <p>
+          Botón de pánico, alertas en tiempo real y una comunidad que te ayuda
+          a recuperar tu auto.
+        </p>
+
+        <div class="hero-features">
+          <div><span>🛡</span><p>Reportes verificados</p></div>
+          <div><span>📍</span><p>Ubicación en tiempo real</p></div>
+          <div><span>🔒</span><p>Datos protegidos</p></div>
+        </div>
+
+        <div class="search-box">
+          <div>
+            <label>Buscar por placas</label>
+            <input id="placasInput" type="text" placeholder="Ej. ABC123D" />
+          </div>
+
+          <div>
+            <label>Buscar por marca</label>
+            <select id="marcaInput">
+              <option value="">Selecciona una marca</option>
+              <option>Nissan</option>
+              <option>Volkswagen</option>
+              <option>Chevrolet</option>
+              <option>BMW</option>
+              <option>Mercedes-Benz</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Estado</label>
+            <select id="estadoInput">
+              <option value="">Selecciona estado</option>
+              <option>CDMX</option>
+              <option>Estado de México</option>
+              <option>Puebla</option>
+              <option>Querétaro</option>
+            </select>
+          </div>
+
+          <button onclick="buscarVehiculo()">Buscar vehículo</button>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="discount-card">
+          <h3>¿Tu auto fue robado?</h3>
+          <p>Activa una alerta inmediata para usuarios cercanos.</p>
+
+          <div class="circle">
+            <strong>24/7</strong>
+            <span>ALERTA</span>
+          </div>
+
+          <button onclick="activarPanico()">Activar botón de pánico</button>
+        </div>
+
+        <div class="central-card">
+          <h3>Habla con nuestra central</h3>
+          <p>Asesores expertos te ayudan a reportar, localizar y recuperar.</p>
+
+          <div class="contact-grid">
+            <button>Llamada<br><strong>55 1234 5678</strong></button>
+            <button>WhatsApp<br><strong>55 1234 5678</strong></button>
+            <button>Formulario<br><strong>Enviar datos</strong></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="corralones-section">
+      <div class="section-head">
+        <h2>Corralones concesionados</h2>
+        <a href="#">Ver todos ›</a>
+      </div>
+
+      <div class="corralones-grid">
+        <article class="corralon-card">
+          <div class="corralon-logo">🚛</div>
+          <h3>GRÚAS DEL VALLE</h3>
+          <p>Naucalpan, Edo. Méx.</p>
+          <span>Promoción activa</span>
+          <button>Buscar vehículos</button>
+        </article>
+
+        <article class="corralon-card">
+          <div class="corralon-logo">🏢</div>
+          <h3>CORRALÓN ATLÁNTICO</h3>
+          <p>Tlalnepantla, Edo. Méx.</p>
+          <span>Promoción activa</span>
+          <button>Buscar vehículos</button>
+        </article>
+
+        <article class="corralon-card">
+          <div class="corralon-logo">🅿️</div>
+          <h3>SAFE PARK</h3>
+          <p>Ecatepec, Edo. Méx.</p>
+          <span>Promoción activa</span>
+          <button>Buscar vehículos</button>
+        </article>
+
+        <article class="corralon-card">
+          <div class="corralon-logo">🚨</div>
+          <h3>GRÚAS HIDALGO</h3>
+          <p>Cuautitlán, Edo. Méx.</p>
+          <span>Promoción activa</span>
+          <button>Buscar vehículos</button>
+        </article>
+
+        <article class="corralon-card">
+          <div class="corralon-logo">🏙️</div>
+          <h3>CORRALÓN CENTRO</h3>
+          <p>Nezahualcóyotl, Edo. Méx.</p>
+          <span>Promoción activa</span>
+          <button>Buscar vehículos</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <aside class="left-panel">
+        <div class="panel-title">
+          <div class="shield">🛡</div>
+          <div>
+            <h2>AutoProtect</h2>
+            <p>Protección vehicular inteligente</p>
+          </div>
+        </div>
+
+        <p class="left-desc">
+          Botón de pánico, alertas por zona y una comunidad que te ayuda a
+          recuperar tu vehículo.
+        </p>
+
+        <button class="panic-btn" onclick="activarPanico()">
+          🚨 BOTÓN DE PÁNICO
+          <span>Reportar robo ahora</span>
+        </button>
+
+        <button class="secondary-btn">
+          Registrar mi vehículo
+          <span>Guardar fotos y datos</span>
+        </button>
+      </aside>
+
+      <section class="main-content">
+        <div class="tabs">
+          <button class="active">Inicio</button>
+          <button>Autos robados</button>
+          <button>Localizados</button>
+          <button>Recuperados</button>
+          <button>Comunidad</button>
+        </div>
+
+        <div class="cards-row">
+          <article class="status-card red">
+            <span class="tag">EN VIVO</span>
+            <h3>ROBO ACTIVADO</h3>
+            <p>Tu alerta ha sido enviada</p>
+            <div class="map-circle">📍</div>
+            <small>Ubicación actual · Benito Juárez, CDMX</small>
+          </article>
+
+          <article class="vehicle-card">
+            <span class="premium">👑 LUGAR PRIVILEGIADO</span>
+            <img src="https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80" alt="auto" />
+            <h3>Vehículo robado</h3>
+            <p><strong>Placas:</strong> ABC-123-D</p>
+            <p><strong>Serie:</strong> JN1AB7APXHY123456</p>
+            <p><strong>Robo:</strong> 12/05/2024 · 14:30 hrs</p>
+            <button>Ver detalles</button>
+          </article>
+
+          <article class="reward-card">
+            <span>★ RECOMPENSA OFRECIDA</span>
+            <h3>$10,000 MXN</h3>
+            <p>A quien proporcione información que ayude a recuperarlo.</p>
+            <div class="money-icon">$</div>
+            <small>Se mantiene en anonimato 100% confidencial</small>
+          </article>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat red-stat">
+            <span>🚨</span>
+            <p>Autos robados</p>
+            <h3>1,254</h3>
+            <button>Ver alertas</button>
+          </div>
+
+          <div class="stat blue-stat">
+            <span>📍</span>
+            <p>Localizados</p>
+            <h3>342</h3>
+            <button>Ver reportes</button>
+          </div>
+
+          <div class="stat green-stat">
+            <span>✅</span>
+            <p>Recuperados</p>
+            <h3>890</h3>
+            <button>Ver recuperados</button>
+          </div>
+        </div>
+
+        <div class="mini-features">
+          <div>
+            <h4>⚡ Alerta en tiempo real</h4>
+            <p>Notificaciones inmediatas a tu comunidad.</p>
+          </div>
+
+          <div>
+            <h4>🔒 Reportes anónimos</h4>
+            <p>Cualquier persona puede reportar ubicación.</p>
+          </div>
+
+          <div>
+            <h4>🎯 Mayor probabilidad</h4>
+            <p>Más ojos, más ayuda, más posibilidades.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right-panel">
+        <div class="user-box">
+          <div>
+            <span>🔔</span>
+            <b>3</b>
+          </div>
+
+          <div>
+            <h4>Mi cuenta</h4>
+            <p>Nivel 2 · 1,250 pts</p>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <div class="card-head">
+            <h3>Actividad reciente</h3>
+            <a href="#">Ver todas</a>
+          </div>
+
+          <ul>
+            <li><span>🚨</span> Reporte recibido en Iztapalapa <small>Hace 2 horas</small></li>
+            <li><span>📍</span> Auto localizado en Ecatepec <small>Hace 15 min</small></li>
+            <li><span>✅</span> Auto recuperado en Naucalpan <small>Hace 1 hora</small></li>
+            <li><span>⚠</span> Reporte recibido en Tlalnepantla <small>Hace 20 min</small></li>
+          </ul>
+        </div>
+
+        <div class="help-card">
+          <h3>¿Necesitas ayuda inmediata?</h3>
+          <p>Llama o escribe a nuestra central.</p>
+          <div>
+            <button>📞 55 1234 5678</button>
+            <button>WhatsApp</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="bottom-stats">
+      <div>
+        <span>🚗</span>
+        <h3>+10,000</h3>
+        <p>Usuarios activos</p>
+      </div>
 
       <div>
-        <h1>AutoProtect</h1>
-        <p>Tu red de protección vehicular</p>
-      </div>
-    </div>
-
-    <nav class="nav">
-      <a class="active" href="#">Inicio</a>
-      <a href="#">Autos robados</a>
-      <a href="#">Localizados</a>
-      <a href="#">Recuperados</a>
-      <a href="#">Comunidad</a>
-      <a href="#">Cómo funciona</a>
-      <a href="#">Contacto</a>
-    </nav>
-
-    <div class="client-area">
-      <div class="phone">
-        <span>Central de recuperación</span>
-        <strong>55 1234 5678</strong>
+        <span>🛡</span>
+        <h3>+2,486</h3>
+        <p>Vehículos protegidos</p>
       </div>
 
-      <button>Área de clientes</button>
-    </div>
-
-  </header>
-
-  <!-- HERO -->
-  <section class="hero">
-
-    <div class="hero-copy">
-
-      <h2>
-        Encuentra tu vehículo<br/>
-        y recupéralo <span>con descuento.</span>
-      </h2>
-
-      <p>
-        Localizamos tu vehículo en corralones concesionados
-        en todo México y te ayudamos a liberarlo.
-      </p>
-
-      <div class="hero-features">
-
-        <div>
-          <span>🛡</span>
-          <p>Corralones verificados</p>
-        </div>
-
-        <div>
-          <span>📦</span>
-          <p>Más de 1 año descuentos especiales</p>
-        </div>
-
-        <div>
-          <span>🔒</span>
-          <p>Proceso seguro y transparente</p>
-        </div>
-
+      <div>
+        <span>🔔</span>
+        <h3>+1,254</h3>
+        <p>Alertas activas</p>
       </div>
 
-      <div class="search-box">
-
-        <div>
-          <label>Buscar por placas</label>
-          <input id="placasInput" type="text" placeholder="Ej. ABC123D"/>
-        </div>
-
-        <div>
-          <label>Marca</label>
-
-          <select id="marcaInput">
-            <option>Selecciona una marca</option>
-            <option>Nissan</option>
-            <option>Volkswagen</option>
-            <option>Chevrolet</option>
-            <option>BMW</option>
-            <option>Mercedes-Benz</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Submarca</label>
-
-          <select>
-            <option>Selecciona una submarca</option>
-          </select>
-        </div>
-
-        <button onclick="buscarVehiculo()">
-          🔍 Buscar vehículo
-        </button>
-
+      <div>
+        <span>✅</span>
+        <h3>+890</h3>
+        <p>Vehículos recuperados</p>
       </div>
 
-    </div>
-
-    <div class="hero-side">
-
-      <div class="discount-card">
-
-        <h3>
-          ¿Tu vehículo tiene más de 1 año
-          en el corralón?
-        </h3>
-
-        <p>
-          Puedes acceder a nuestro programa de descuentos especiales
-          para la liberación.
-        </p>
-
-        <div class="circle">
-          <strong>70%</strong>
-          <span>DE DESCUENTO</span>
-        </div>
-
-        <button>
-          Ver vehículos con más de 1 año
-        </button>
-
+      <div>
+        <span>🕒</span>
+        <h3>24/7</h3>
+        <p>Central de monitoreo</p>
       </div>
+    </footer>
 
-      <div class="central-card">
+  </main>
 
-        <h3>Habla con nuestra central</h3>
-
-        <p>
-          Asesores expertos te ayudarán a encontrar,
-          negociar y recuperarlo.
-        </p>
-
-        <div class="contact-grid">
-
-          <button>
-            📞 Llamada
-            <strong>55 1234 5678</strong>
-          </button>
-
-          <button>
-            WhatsApp
-            <strong>55 1234 5678</strong>
-          </button>
-
-          <button>
-            ✉ Formulario
-            <strong>Enviar datos</strong>
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-  <!-- CORRALONES -->
-  <section class="corralones-section">
-
-    <div class="section-head">
-      <h2>Corralones concesionados</h2>
-      <a href="#">Ver todos ›</a>
-    </div>
-
-    <div class="corralones-grid">
-
-      <article class="corralon-card">
-        <h3>GRÚAS DEL VALLE</h3>
-        <p>Naucalpan, Edo. Méx.</p>
-        <span>Promoción activa</span>
-        <button>Buscar vehículos</button>
-      </article>
-
-      <article class="corralon-card">
-        <h3>CORRALÓN ATLÁNTICO</h3>
-        <p>Tlalnepantla, Edo. Méx.</p>
-        <span>Promoción activa</span>
-        <button>Buscar vehículos</button>
-      </article>
-
-      <article class="corralon-card">
-        <h3>SAFE PARK</h3>
-        <p>Ecatepec, Edo. Méx.</p>
-        <span>Promoción activa</span>
-        <button>Buscar vehículos</button>
-      </article>
-
-      <article class="corralon-card">
-        <h3>GRÚAS HIDALGO</h3>
-        <p>Cuautitlán, Edo. Méx.</p>
-        <span>Promoción activa</span>
-        <button>Buscar vehículos</button>
-      </article>
-
-      <article class="corralon-card">
-        <h3>CORRALÓN CENTRO</h3>
-        <p>Nezahualcóyotl, Edo. Méx.</p>
-        <span>Promoción activa</span>
-        <button>Buscar vehículos</button>
-      </article>
-
-    </div>
-
-  </section>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
