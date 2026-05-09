@@ -30,6 +30,9 @@ function activarPanico() {
 document.addEventListener("DOMContentLoaded", () => {
   const tabs = document.querySelectorAll(".tabs button");
   const navLinks = document.querySelectorAll(".nav a");
+  const vehicleButtons = document.querySelectorAll(".vehicle-card button");
+  const contactButtons = document.querySelectorAll(".contact-grid button");
+  const corralonButtons = document.querySelectorAll(".corralon-card button");
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -47,17 +50,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const vehicleButtons = document.querySelectorAll(".vehicle-card button");
   vehicleButtons.forEach((button) => {
     button.addEventListener("click", () => {
       alert("Aquí se abrirán los detalles completos del vehículo.");
     });
   });
 
-  const contactButtons = document.querySelectorAll(".contact-grid button");
   contactButtons.forEach((button) => {
     button.addEventListener("click", () => {
       alert("Conectando con la central de AutoProtect.");
+    });
+  });
+
+  corralonButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      alert("Buscando vehículo en este corralón.");
     });
   });
 });
