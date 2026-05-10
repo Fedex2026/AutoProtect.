@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>AutoProtect</title>
 
-  <!-- CSS CORREGIDO -->
   <link rel="stylesheet" href="style.css?v=999" />
 </head>
 
@@ -13,13 +13,15 @@
 
 <main class="app">
 
+  <!-- HEADER -->
   <header class="topbar">
+
     <div class="brand">
       <div class="logo">AP</div>
 
       <div>
         <h1>AutoProtect</h1>
-        <p>Tu red de protección vehicular</p>
+        <p>TU RED DE PROTECCIÓN VEHICULAR</p>
       </div>
     </div>
 
@@ -34,6 +36,7 @@
     </nav>
 
     <div class="client-area">
+
       <div class="phone">
         <span>Central de recuperación</span>
         <strong>55 1234 5678</strong>
@@ -42,9 +45,14 @@
       <button onclick="abrirModalClientes()">
         Área de clientes
       </button>
+
     </div>
+
   </header>
 
+
+
+  <!-- HERO -->
   <section class="hero">
 
     <div class="hero-copy">
@@ -61,6 +69,7 @@
       </p>
 
       <div class="hero-features">
+
         <div>
           <span>🛡</span>
           <p>Reportes verificados</p>
@@ -75,8 +84,11 @@
           <span>🔒</span>
           <p>Datos protegidos</p>
         </div>
+
       </div>
 
+
+      <!-- BUSCADOR -->
       <div class="search-box">
 
         <div>
@@ -90,6 +102,7 @@
         </div>
 
         <div>
+
           <label>Buscar por marca</label>
 
           <select id="marcaInput">
@@ -100,9 +113,11 @@
             <option>BMW</option>
             <option>Mercedes-Benz</option>
           </select>
+
         </div>
 
         <div>
+
           <label>Estado</label>
 
           <select id="estadoInput">
@@ -112,6 +127,7 @@
             <option>Puebla</option>
             <option>Querétaro</option>
           </select>
+
         </div>
 
         <button onclick="buscarVehiculo()">
@@ -119,8 +135,12 @@
         </button>
 
       </div>
+
     </div>
 
+
+
+    <!-- DERECHA -->
     <div class="hero-side">
 
       <div class="discount-card">
@@ -141,6 +161,8 @@
         </button>
 
       </div>
+
+
 
       <div class="central-card">
 
@@ -172,20 +194,31 @@
           </button>
 
         </div>
+
       </div>
+
     </div>
+
   </section>
 
+
+
+  <!-- CORRALONES -->
   <section class="corralones-section">
 
     <div class="section-head">
+
       <h2>Corralones concesionados</h2>
+
       <a href="#">Ver todos ›</a>
+
     </div>
+
 
     <div class="corralones-grid">
 
       <article class="corralon-card">
+
         <div class="corralon-logo">🚛</div>
 
         <h3>GRÚAS DEL VALLE</h3>
@@ -195,9 +228,13 @@
         <span>Promoción activa</span>
 
         <button>Buscar vehículos</button>
+
       </article>
 
+
+
       <article class="corralon-card">
+
         <div class="corralon-logo">🏢</div>
 
         <h3>CORRALÓN ATLÁNTICO</h3>
@@ -207,9 +244,13 @@
         <span>Promoción activa</span>
 
         <button>Buscar vehículos</button>
+
       </article>
 
+
+
       <article class="corralon-card">
+
         <div class="corralon-logo">🅿️</div>
 
         <h3>SAFE PARK</h3>
@@ -219,9 +260,13 @@
         <span>Promoción activa</span>
 
         <button>Buscar vehículos</button>
+
       </article>
 
+
+
       <article class="corralon-card">
+
         <div class="corralon-logo">🚨</div>
 
         <h3>GRÚAS HIDALGO</h3>
@@ -231,9 +276,13 @@
         <span>Promoción activa</span>
 
         <button>Buscar vehículos</button>
+
       </article>
 
+
+
       <article class="corralon-card">
+
         <div class="corralon-logo">🏙️</div>
 
         <h3>CORRALÓN CENTRO</h3>
@@ -243,15 +292,385 @@
         <span>Promoción activa</span>
 
         <button>Buscar vehículos</button>
+
       </article>
 
     </div>
+
+  </section>
+
+
+
+  <!-- DASHBOARD -->
+  <section class="dashboard">
+
+    <aside class="left-panel">
+
+      <div class="panel-title">
+
+        <div class="shield">🛡</div>
+
+        <div>
+          <h2>AutoProtect</h2>
+          <p>Protección vehicular inteligente</p>
+        </div>
+
+      </div>
+
+
+      <p class="left-desc">
+
+        Botón de pánico, alertas por zona y una
+        comunidad que te ayuda a recuperar tu vehículo.
+
+      </p>
+
+
+      <button
+        class="panic-btn"
+        onclick="activarPanico()"
+      >
+        🚨 BOTÓN DE PÁNICO
+
+        <span>Reportar robo ahora</span>
+
+      </button>
+
+
+      <button
+        class="secondary-btn"
+        onclick="abrirModalClientes()"
+      >
+
+        Registrar mi vehículo
+
+        <span>Guardar fotos y datos</span>
+
+      </button>
+
+    </aside>
+
+
+
+    <section class="main-content">
+
+      <div class="tabs">
+
+        <button class="active">Inicio</button>
+        <button>Autos robados</button>
+        <button>Localizados</button>
+        <button>Recuperados</button>
+        <button>Comunidad</button>
+
+      </div>
+
+
+
+      <div class="cards-row">
+
+        <article class="status-card red">
+
+          <span class="tag">EN VIVO</span>
+
+          <h3>ROBO ACTIVADO</h3>
+
+          <p>Tu alerta ha sido enviada</p>
+
+          <div class="map-circle">📍</div>
+
+          <small>
+            Ubicación actual · Benito Juárez, CDMX
+          </small>
+
+        </article>
+
+
+
+        <article class="vehicle-card">
+
+          <span class="premium">
+            👑 LUGAR PRIVILEGIADO
+          </span>
+
+          <img
+            src="https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80"
+          />
+
+          <h3>Vehículo robado</h3>
+
+          <p>
+            <strong>Placas:</strong> ABC-123-D
+          </p>
+
+          <p>
+            <strong>Serie:</strong>
+            JN1AB7APXHY123456
+          </p>
+
+          <p>
+            <strong>Robo:</strong>
+            12/05/2024 · 14:30 hrs
+          </p>
+
+          <button>Ver detalles</button>
+
+        </article>
+
+
+
+        <article class="reward-card">
+
+          <span>★ RECOMPENSA OFRECIDA</span>
+
+          <h3>$10,000 MXN</h3>
+
+          <p>
+            A quien proporcione información
+            que ayude a recuperarlo.
+          </p>
+
+          <div class="money-icon">$</div>
+
+          <small>
+            Se mantiene en anonimato 100% confidencial
+          </small>
+
+        </article>
+
+      </div>
+
+    </section>
+
   </section>
 
 </main>
 
-<!-- SCRIPT -->
-<script type="module" src="script.js?v=999"></script>
+
+
+<!-- MODAL CLIENTES -->
+<div class="modal" id="modalClientes">
+
+  <div class="modal-content">
+
+    <div class="modal-head">
+
+      <h2>Área de clientes</h2>
+
+      <button onclick="cerrarModalClientes()">
+        ×
+      </button>
+
+    </div>
+
+
+
+    <!-- LOGIN -->
+    <div id="authBox">
+
+      <p class="modal-subtitle">
+        Inicia sesión o crea tu cuenta para entrar a tu panel.
+      </p>
+
+
+      <div class="auth-tabs">
+
+        <button
+          class="auth-tab active"
+          onclick="mostrarAuthTab('login')"
+        >
+          Iniciar sesión
+        </button>
+
+
+        <button
+          class="auth-tab"
+          onclick="mostrarAuthTab('registro')"
+        >
+          Crear cuenta
+        </button>
+
+      </div>
+
+
+
+      <!-- LOGIN -->
+      <div id="loginForm" class="auth-form active">
+
+        <input
+          id="loginEmail"
+          type="email"
+          placeholder="Correo electrónico"
+        />
+
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Contraseña"
+        />
+
+        <button onclick="loginUsuario()">
+          Entrar
+        </button>
+
+      </div>
+
+
+
+      <!-- REGISTRO -->
+      <div id="registroForm" class="auth-form">
+
+        <input
+          id="registroNombre"
+          type="text"
+          placeholder="Nombre completo"
+        />
+
+        <input
+          id="registroEmail"
+          type="email"
+          placeholder="Correo electrónico"
+        />
+
+        <input
+          id="registroPassword"
+          type="password"
+          placeholder="Contraseña"
+        />
+
+
+        <select
+          id="registroTipo"
+          onchange="mostrarCampoCodigoCorralon()"
+        >
+
+          <option value="gratis">
+            Cuenta gratis
+          </option>
+
+          <option value="miembro">
+            Miembro premium
+          </option>
+
+          <option value="corralon">
+            Dueño de corralón
+          </option>
+
+        </select>
+
+
+        <input
+          id="codigoCorralon"
+          type="text"
+          placeholder="Código de autorización para corralón"
+          style="display:none;"
+        />
+
+        <button onclick="registrarUsuario()">
+          Crear cuenta
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- SESION -->
+    <div id="usuarioBox" style="display:none;">
+
+      <p class="modal-subtitle">
+
+        Sesión iniciada como:
+        <strong id="usuarioCorreo"></strong>
+
+        <br />
+
+        Tipo de cuenta:
+        <strong id="usuarioTipo"></strong>
+
+      </p>
+
+
+
+      <div class="access-grid">
+
+        <button
+          id="btnPanelCorralon"
+          onclick="abrirPanel('corralon')"
+          style="display:none;"
+        >
+
+          🏢 Panel corralón
+
+          <span>
+            Subir vehículos retenidos
+            y administrar unidades.
+          </span>
+
+        </button>
+
+
+
+        <button
+          id="btnPanelMiembro"
+          onclick="abrirPanel('miembro')"
+          style="display:none;"
+        >
+
+          ⭐ Panel miembro premium
+
+          <span>
+            Registrar autos, botón de pánico
+            y beneficios.
+          </span>
+
+        </button>
+
+
+
+        <button
+          id="btnPanelGratis"
+          onclick="abrirPanel('gratis')"
+          style="display:none;"
+        >
+
+          👤 Acceso gratis
+
+          <span>
+            Buscar vehículos y reportar
+            con beneficios limitados.
+          </span>
+
+        </button>
+
+      </div>
+
+
+
+      <button
+        class="logout-btn"
+        onclick="logoutUsuario()"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- JS -->
+<script src="script.js?v=999"></script>
 
 </body>
 </html>
