@@ -1,193 +1,292 @@
-function buscarVehiculo() {
-  const placas = document.getElementById("placasInput").value.trim();
-  const marca = document.getElementById("marcaInput").value;
-  const estado = document.getElementById("estadoInput").value;
+// FIREBASE
+// =========================
 
-  if (!placas && !marca && !estado) {
-    alert("Ingresa placas, marca o estado para buscar.");
-    return;
-  }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-  alert(
-    `Búsqueda iniciada:\n\nPlacas: ${placas || "Sin placas"}\nMarca: ${
-      marca || "Sin marca"
-    }\nEstado: ${estado || "Sin estado"}`
-  );
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// =========================
+// PEGA TUS CLAVES AQUI
+// =========================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4DcYkz6PhLSoYWkncpuXVq3NqtYka2CM",
+  authDomain: "autoprotect-7dabb.firebaseapp.com",
+  projectId: "autoprotect-7dabb",
+  storageBucket: "autoprotect-7dabb.firebasestorage.app",
+  messagingSenderId: "583827631154",
+  appId: "1:583827631154:web:2904409c93b61b7114202b"
+};
+
+
+// =========================
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+
+// =========================
+// MODALES
+// =========================
+
+function abrirModal(id) {
+  document.getElementById(id).classList.add("active");
 }
 
-function activarPanico() {
-  const confirmar = confirm("¿Quieres activar el botón de pánico y reportar el robo del vehículo?");
-  if (!confirmar) return;
-  alert("Alerta activada. Tu reporte fue enviado a la comunidad y a la central de recuperación.");
+function cerrarModal(id) {
+  document.getElementById(id).classList.remove("active");
 }
 
-function abrirModalClientes() {
-  cerrarModalClientes();
-  document.getElementById("modalClientes").classList.add("active");
-}
 
-function abrirPanel(tipo) {
-  cerrarModalClientes();
+// =========================
+// REGISTRO
+// =========================
 
-  if (tipo === "corralon") {
-    document.getElementById("panelCorralon").classList.add("active");
-    renderCorralon();
-  }
+window.registrarUsuario = async () => {
+  try {
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+    const tipo = document.getElementById("registerTipo").value;
 
-  if (tipo === "miembro") {
-    document.getElementById("panelMiembro").classList.add("active");
-    renderMiembro();
-  }
+    if (!email || !password) {
+      alert("Completa todos los campos");
+      return;
+    }
 
-  if (tipo === "gratis") {
-    document.getElementById("panelGratis").classList.add("active");
-  }
-}
+    const cred = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
 
-function cerrarModalClientes() {
-  document.querySelectorAll(".modal").forEach((modal) => {
-    modal.classList.remove("active");
-  });
-}
-
-function guardarAutoCorralon(event) {
-  event.preventDefault();
-
-  const auto = {
-    id: Date.now(),
-    corralon: document.getElementById("corralonNombre").value,
-    municipio: document.getElementById("corralonMunicipio").value,
-    marca: document.getElementById("corralonMarca").value,
-    modelo: document.getElementById("corralonModelo").value,
-    anio: document.getElementById("corralonAnio").value,
-    placas: document.getElementById("corralonPlacas").value,
-    serie: document.getElementById("corralonSerie").value,
-    color: document.getElementById("corralonColor").value,
-    fechaIngreso: document.getElementById("corralonFecha").value,
-    masAnio: document.getElementById("corralonMasAnio").value,
-    adeudo: document.getElementById("corralonAdeudo").value,
-  };
-
-  const guardados = JSON.parse(localStorage.getItem("autosCorralon") || "[]");
-  guardados.unshift(auto);
-  localStorage.setItem("autosCorralon", JSON.stringify(guardados));
-
-  event.target.reset();
-  renderCorralon();
-  alert("Vehículo guardado en el panel de corralón.");
-}
-
-function renderCorralon() {
-  const lista = document.getElementById("listaCorralon");
-  const autos = JSON.parse(localStorage.getItem("autosCorralon") || "[]");
-
-  if (!lista) return;
-
-  if (autos.length === 0) {
-    lista.innerHTML = `<p class="empty">Aún no hay vehículos subidos.</p>`;
-    return;
-  }
-
-  lista.innerHTML = autos.map((auto) => `
-    <div class="saved-item">
-      <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
-      <p><strong>Placas:</strong> ${auto.placas}</p>
-      <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-      <p><strong>Corralón:</strong> ${auto.corralon}</p>
-      <p><strong>Municipio:</strong> ${auto.municipio}</p>
-      <p><strong>Adeudo:</strong> ${auto.adeudo || "No capturado"}</p>
-      <span class="badge ${auto.masAnio === "Sí" ? "" : "red"}">
-        ${auto.masAnio === "Sí" ? "Más de 1 año / descuento" : "Ingreso reciente"}
-      </span>
-    </div>
-  `).join("");
-}
-
-function guardarAutoMiembro(event) {
-  event.preventDefault();
-
-  const auto = {
-    id: Date.now(),
-    nombre: document.getElementById("miembroNombre").value,
-    telefono: document.getElementById("miembroTelefono").value,
-    marca: document.getElementById("miembroMarca").value,
-    modelo: document.getElementById("miembroModelo").value,
-    anio: document.getElementById("miembroAnio").value,
-    placas: document.getElementById("miembroPlacas").value,
-    serie: document.getElementById("miembroSerie").value,
-    color: document.getElementById("miembroColor").value,
-  };
-
-  const guardados = JSON.parse(localStorage.getItem("autosMiembro") || "[]");
-  guardados.unshift(auto);
-  localStorage.setItem("autosMiembro", JSON.stringify(guardados));
-
-  event.target.reset();
-  renderMiembro();
-  alert("Vehículo guardado en tu cuenta premium.");
-}
-
-function renderMiembro() {
-  const lista = document.getElementById("listaMiembro");
-  const autos = JSON.parse(localStorage.getItem("autosMiembro") || "[]");
-
-  if (!lista) return;
-
-  if (autos.length === 0) {
-    lista.innerHTML = `<p class="empty">Aún no tienes vehículos registrados.</p>`;
-    return;
-  }
-
-  lista.innerHTML = autos.map((auto) => `
-    <div class="saved-item">
-      <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
-      <p><strong>Propietario:</strong> ${auto.nombre}</p>
-      <p><strong>Teléfono:</strong> ${auto.telefono}</p>
-      <p><strong>Placas:</strong> ${auto.placas}</p>
-      <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-      <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-      <span class="badge">Protegido premium</span>
-    </div>
-  `).join("");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const tabs = document.querySelectorAll(".tabs button");
-  const navLinks = document.querySelectorAll(".nav a");
-  const vehicleButtons = document.querySelectorAll(".vehicle-card button");
-  const contactButtons = document.querySelectorAll(".contact-grid button");
-  const corralonButtons = document.querySelectorAll(".corralon-card button");
-
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabs.forEach((btn) => btn.classList.remove("active"));
-      tab.classList.add("active");
+    await setDoc(doc(db, "usuarios", cred.user.uid), {
+      email,
+      tipo,
+      createdAt: serverTimestamp(),
     });
-  });
 
-  navLinks.forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      navLinks.forEach((item) => item.classList.remove("active"));
-      link.classList.add("active");
-    });
-  });
+    alert("Cuenta creada correctamente");
 
-  vehicleButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      alert("Aquí se abrirán los detalles completos del vehículo.");
-    });
-  });
+    cerrarModal("registerModal");
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
-  contactButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      alert("Conectando con la central de AutoProtect.");
-    });
-  });
 
-  corralonButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      alert("Buscando vehículo en este corralón.");
-    });
-  });
+// =========================
+// LOGIN
+// =========================
+
+window.loginUsuario = async () => {
+  try {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    await signInWithEmailAndPassword(auth, email, password);
+
+    cerrarModal("loginModal");
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+
+// =========================
+// LOGOUT
+// =========================
+
+window.logoutUsuario = async () => {
+  await signOut(auth);
+};
+
+
+// =========================
+// ESTADO LOGIN
+// =========================
+
+onAuthStateChanged(auth, async (user) => {
+  const loginBtn = document.getElementById("loginBtn");
+  const panelUsuario = document.getElementById("panelUsuario");
+
+  if (user) {
+    loginBtn.style.display = "none";
+    panelUsuario.style.display = "block";
+
+    const ref = doc(db, "usuarios", user.uid);
+
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    document.getElementById("usuarioCorreo").innerText =
+      user.email;
+
+    document.getElementById("usuarioTipo").innerText =
+      data.tipo;
+
+    if (data.tipo === "corralon") {
+      document.getElementById("zonaCorralon").style.display =
+        "block";
+    }
+
+    if (data.tipo === "miembro") {
+      document.getElementById("zonaMiembro").style.display =
+        "block";
+    }
+
+    if (data.tipo === "gratis") {
+      document.getElementById("zonaGratis").style.display =
+        "block";
+    }
+
+    cargarAutosCorralon();
+  } else {
+    loginBtn.style.display = "flex";
+    panelUsuario.style.display = "none";
+
+    document.getElementById("zonaCorralon").style.display =
+      "none";
+
+    document.getElementById("zonaMiembro").style.display =
+      "none";
+
+    document.getElementById("zonaGratis").style.display =
+      "none";
+  }
 });
+
+
+// =========================
+// SUBIR AUTO CORRALON
+// =========================
+
+window.guardarVehiculoCorralon = async () => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Inicia sesión");
+      return;
+    }
+
+    const nombreCorralon =
+      document.getElementById("corralonNombre").value;
+
+    const municipio =
+      document.getElementById("corralonMunicipio").value;
+
+    const marca =
+      document.getElementById("corralonMarca").value;
+
+    const modelo =
+      document.getElementById("corralonModelo").value;
+
+    const anio =
+      document.getElementById("corralonAnio").value;
+
+    const placas =
+      document.getElementById("corralonPlacas").value;
+
+    const serie =
+      document.getElementById("corralonSerie").value;
+
+    const adeudo =
+      document.getElementById("corralonAdeudo").value;
+
+    const descuento =
+      document.getElementById("corralonDescuento").value;
+
+    await addDoc(collection(db, "autosCorralon"), {
+      uid: user.uid,
+      email: user.email,
+      nombreCorralon,
+      municipio,
+      marca,
+      modelo,
+      anio,
+      placas,
+      serie,
+      adeudo,
+      descuento,
+      createdAt: serverTimestamp(),
+    });
+
+    alert("Vehículo guardado");
+
+    cargarAutosCorralon();
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+
+// =========================
+// CARGAR AUTOS
+// =========================
+
+async function cargarAutosCorralon() {
+  const container =
+    document.getElementById("autosCorralonLista");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const q = query(collection(db, "autosCorralon"));
+
+  const snap = await getDocs(q);
+
+  snap.forEach((docu) => {
+    const data = docu.data();
+
+    container.innerHTML += `
+      <div class="car-card">
+        <h3>${data.marca} ${data.modelo}</h3>
+
+        <p><strong>Año:</strong> ${data.anio}</p>
+
+        <p><strong>Placas:</strong> ${data.placas}</p>
+
+        <p><strong>Serie:</strong> ${data.serie}</p>
+
+        <p><strong>Corralón:</strong> ${data.nombreCorralon}</p>
+
+        <p><strong>Municipio:</strong> ${data.municipio}</p>
+
+        <p><strong>Adeudo:</strong> $${data.adeudo}</p>
+
+        ${
+          data.descuento === "si"
+            ? `<span class="discount-badge">Más de 1 año / descuento</span>`
+            : ""
+        }
+      </div>
+    `;
+  });
+}
