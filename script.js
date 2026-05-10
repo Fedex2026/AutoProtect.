@@ -66,7 +66,6 @@ function mostrarAuthTab(tab) {
 function mostrarCampoCodigoCorralon() {
   const tipo = document.getElementById("registroTipo").value;
   const campo = document.getElementById("codigoCorralon");
-
   campo.style.display = tipo === "corralon" ? "block" : "none";
 }
 
