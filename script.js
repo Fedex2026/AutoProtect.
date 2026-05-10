@@ -16,24 +16,18 @@ function buscarVehiculo() {
 }
 
 function activarPanico() {
-  const confirmar = confirm(
-    "¿Quieres activar el botón de pánico y reportar el robo del vehículo?"
-  );
-
+  const confirmar = confirm("¿Quieres activar el botón de pánico y reportar el robo del vehículo?");
   if (!confirmar) return;
-
-  alert(
-    "Alerta activada. Tu reporte fue enviado a la comunidad y a la central de recuperación."
-  );
+  alert("Alerta activada. Tu reporte fue enviado a la comunidad y a la central de recuperación.");
 }
 
 function abrirModalClientes() {
-  cerrarModales();
+  cerrarModalClientes();
   document.getElementById("modalClientes").classList.add("active");
 }
 
 function abrirPanel(tipo) {
-  cerrarModales();
+  cerrarModalClientes();
 
   if (tipo === "corralon") {
     document.getElementById("panelCorralon").classList.add("active");
@@ -50,7 +44,7 @@ function abrirPanel(tipo) {
   }
 }
 
-function cerrarModales() {
+function cerrarModalClientes() {
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.classList.remove("active");
   });
@@ -80,7 +74,6 @@ function guardarAutoCorralon(event) {
 
   event.target.reset();
   renderCorralon();
-
   alert("Vehículo guardado en el panel de corralón.");
 }
 
@@ -95,23 +88,19 @@ function renderCorralon() {
     return;
   }
 
-  lista.innerHTML = autos
-    .map(
-      (auto) => `
-      <div class="saved-item">
-        <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
-        <p><strong>Placas:</strong> ${auto.placas}</p>
-        <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-        <p><strong>Corralón:</strong> ${auto.corralon}</p>
-        <p><strong>Municipio:</strong> ${auto.municipio}</p>
-        <p><strong>Adeudo:</strong> ${auto.adeudo || "No capturado"}</p>
-        <span class="badge ${auto.masAnio === "Sí" ? "" : "red"}">
-          ${auto.masAnio === "Sí" ? "Más de 1 año / descuento" : "Ingreso reciente"}
-        </span>
-      </div>
-    `
-    )
-    .join("");
+  lista.innerHTML = autos.map((auto) => `
+    <div class="saved-item">
+      <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
+      <p><strong>Placas:</strong> ${auto.placas}</p>
+      <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
+      <p><strong>Corralón:</strong> ${auto.corralon}</p>
+      <p><strong>Municipio:</strong> ${auto.municipio}</p>
+      <p><strong>Adeudo:</strong> ${auto.adeudo || "No capturado"}</p>
+      <span class="badge ${auto.masAnio === "Sí" ? "" : "red"}">
+        ${auto.masAnio === "Sí" ? "Más de 1 año / descuento" : "Ingreso reciente"}
+      </span>
+    </div>
+  `).join("");
 }
 
 function guardarAutoMiembro(event) {
@@ -135,7 +124,6 @@ function guardarAutoMiembro(event) {
 
   event.target.reset();
   renderMiembro();
-
   alert("Vehículo guardado en tu cuenta premium.");
 }
 
@@ -150,21 +138,17 @@ function renderMiembro() {
     return;
   }
 
-  lista.innerHTML = autos
-    .map(
-      (auto) => `
-      <div class="saved-item">
-        <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
-        <p><strong>Propietario:</strong> ${auto.nombre}</p>
-        <p><strong>Teléfono:</strong> ${auto.telefono}</p>
-        <p><strong>Placas:</strong> ${auto.placas}</p>
-        <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-        <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-        <span class="badge">Protegido premium</span>
-      </div>
-    `
-    )
-    .join("");
+  lista.innerHTML = autos.map((auto) => `
+    <div class="saved-item">
+      <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
+      <p><strong>Propietario:</strong> ${auto.nombre}</p>
+      <p><strong>Teléfono:</strong> ${auto.telefono}</p>
+      <p><strong>Placas:</strong> ${auto.placas}</p>
+      <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
+      <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
+      <span class="badge">Protegido premium</span>
+    </div>
+  `).join("");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
