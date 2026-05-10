@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoProtect | Protección vehicular</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>AutoProtect</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
 
@@ -41,10 +41,8 @@
   <section class="hero">
     <div class="hero-copy">
       <h2>Protegemos tu vehículo,<br />estés donde estés.</h2>
-
       <p>
-        Botón de pánico, alertas en tiempo real, búsqueda en corralones
-        y una comunidad que te ayuda a recuperar tu auto.
+        Botón de pánico, alertas en tiempo real, búsqueda en corralones y una comunidad que te ayuda a recuperar tu auto.
       </p>
 
       <div class="hero-features">
@@ -172,8 +170,7 @@
       </div>
 
       <p class="left-desc">
-        Botón de pánico, alertas por zona y una comunidad que te ayuda a
-        recuperar tu vehículo.
+        Botón de pánico, alertas por zona y una comunidad que te ayuda a recuperar tu vehículo.
       </p>
 
       <button class="panic-btn" onclick="activarPanico()">
@@ -313,55 +310,44 @@
 
 </main>
 
-<!-- MODAL ÁREA DE CLIENTES -->
 <div class="modal" id="modalClientes">
-  <div class="modal-content large">
+  <div class="modal-content">
     <div class="modal-head">
-      <h2>Área de clientes AutoProtect</h2>
-      <button onclick="cerrarModales()">×</button>
+      <h2>Área de clientes</h2>
+      <button onclick="cerrarModalClientes()">×</button>
     </div>
 
-    <p class="modal-subtitle">
-      Elige cómo quieres entrar al sistema.
-    </p>
+    <p class="modal-subtitle">Elige cómo quieres entrar a AutoProtect.</p>
 
     <div class="access-grid">
-      <article class="access-card">
-        <div class="access-icon">🏢</div>
-        <h3>Soy corralón</h3>
-        <p>Sube vehículos retenidos, marca unidades con más de 1 año y administra liberaciones.</p>
-        <button onclick="abrirPanel('corralon')">Entrar como corralón</button>
-      </article>
+      <button onclick="abrirPanel('corralon')">
+        🏢 Soy corralón
+        <span>Subir vehículos retenidos y administrar unidades.</span>
+      </button>
 
-      <article class="access-card premium-card">
-        <div class="access-icon">⭐</div>
-        <h3>Soy miembro premium</h3>
-        <p>Registra tus autos, guarda fotos, activa botón de pánico y recibe beneficios.</p>
-        <button onclick="abrirPanel('miembro')">Entrar como miembro</button>
-      </article>
+      <button onclick="abrirPanel('miembro')">
+        ⭐ Soy miembro premium
+        <span>Registrar autos, usar botón de pánico y beneficios.</span>
+      </button>
 
-      <article class="access-card">
-        <div class="access-icon">👤</div>
-        <h3>Entrar gratis</h3>
-        <p>Busca vehículos, reporta ubicación limitada y conoce los beneficios premium.</p>
-        <button onclick="abrirPanel('gratis')">Entrar gratis</button>
-      </article>
+      <button onclick="abrirPanel('gratis')">
+        👤 Entrar gratis
+        <span>Buscar vehículos y reportar con beneficios limitados.</span>
+      </button>
     </div>
   </div>
 </div>
 
-<!-- PANEL CORRALÓN -->
 <div class="modal" id="panelCorralon">
-  <div class="modal-content panel">
+  <div class="modal-content panel-content">
     <div class="modal-head">
       <h2>Panel de corralón</h2>
-      <button onclick="cerrarModales()">×</button>
+      <button onclick="cerrarModalClientes()">×</button>
     </div>
 
     <div class="panel-layout">
       <form class="form-card" onsubmit="guardarAutoCorralon(event)">
         <h3>Subir vehículo al corralón</h3>
-
         <input id="corralonNombre" placeholder="Nombre del corralón" required />
         <input id="corralonMunicipio" placeholder="Municipio / Estado" required />
         <input id="corralonMarca" placeholder="Marca" required />
@@ -371,14 +357,11 @@
         <input id="corralonSerie" placeholder="Serie / VIN" />
         <input id="corralonColor" placeholder="Color" />
         <input id="corralonFecha" type="date" />
-
         <select id="corralonMasAnio">
           <option value="No">¿Tiene más de 1 año? No</option>
           <option value="Sí">Sí, más de 1 año</option>
         </select>
-
         <input id="corralonAdeudo" placeholder="Adeudo aproximado" />
-
         <button type="submit">Guardar vehículo</button>
       </form>
 
@@ -390,12 +373,11 @@
   </div>
 </div>
 
-<!-- PANEL MIEMBRO -->
 <div class="modal" id="panelMiembro">
-  <div class="modal-content panel">
+  <div class="modal-content panel-content">
     <div class="modal-head">
       <h2>Panel de miembro premium</h2>
-      <button onclick="cerrarModales()">×</button>
+      <button onclick="cerrarModalClientes()">×</button>
     </div>
 
     <div class="benefits-row">
@@ -408,7 +390,6 @@
     <div class="panel-layout">
       <form class="form-card" onsubmit="guardarAutoMiembro(event)">
         <h3>Registrar mi vehículo</h3>
-
         <input id="miembroNombre" placeholder="Nombre del propietario" required />
         <input id="miembroTelefono" placeholder="Teléfono / WhatsApp" required />
         <input id="miembroMarca" placeholder="Marca" required />
@@ -417,7 +398,6 @@
         <input id="miembroPlacas" placeholder="Placas" required />
         <input id="miembroSerie" placeholder="Serie / VIN" />
         <input id="miembroColor" placeholder="Color" />
-
         <button type="submit">Guardar mi vehículo</button>
       </form>
 
@@ -429,12 +409,11 @@
   </div>
 </div>
 
-<!-- PANEL GRATIS -->
 <div class="modal" id="panelGratis">
-  <div class="modal-content panel small-panel">
+  <div class="modal-content small-content">
     <div class="modal-head">
       <h2>Acceso gratis</h2>
-      <button onclick="cerrarModales()">×</button>
+      <button onclick="cerrarModalClientes()">×</button>
     </div>
 
     <div class="free-box">
@@ -454,13 +433,11 @@
         <li>No tiene descuentos especiales.</li>
       </ul>
 
-      <button onclick="alert('Aquí iniciaremos el registro premium.')">
-        Mejorar a premium
-      </button>
+      <button onclick="alert('Aquí iniciaremos el registro premium.')">Mejorar a premium</button>
     </div>
   </div>
 </div>
 
-<script src="script.js"></script>
+<script src="./script.js"></script>
 </body>
 </html>
