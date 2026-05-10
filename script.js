@@ -350,3 +350,52 @@ document.addEventListener("keydown", (event) => {
     cerrarModalClientes();
   }
 });
+
+// ======================
+// BOTONES / NAVEGACIÓN DEMO
+// ======================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const navLinks = document.querySelectorAll(".nav a");
+  const tabs = document.querySelectorAll(".tabs button");
+  const corralonBtns = document.querySelectorAll(".corralon-card button");
+  const vehicleBtns = document.querySelectorAll(".vehicle-card button");
+  const contactBtns = document.querySelectorAll(".contact-grid button");
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      navLinks.forEach((item) => item.classList.remove("active"));
+      link.classList.add("active");
+
+      alert(`Abriendo sección: ${link.textContent.trim()}`);
+    });
+  });
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((item) => item.classList.remove("active"));
+      tab.classList.add("active");
+
+      alert(`Abriendo pestaña: ${tab.textContent.trim()}`);
+    });
+  });
+
+  corralonBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      alert("Aquí se buscarán vehículos dentro de este corralón.");
+    });
+  });
+
+  vehicleBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      alert("Aquí se abrirán los detalles completos del vehículo.");
+    });
+  });
+
+  contactBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      alert("Conectando con la central de AutoProtect.");
+    });
+  });
+});
