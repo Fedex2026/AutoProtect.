@@ -317,23 +317,62 @@
       <button onclick="cerrarModalClientes()">×</button>
     </div>
 
-    <p class="modal-subtitle">Elige cómo quieres entrar a AutoProtect.</p>
+    <div id="authBox">
+      <p class="modal-subtitle">Inicia sesión o crea tu cuenta para entrar a tu panel.</p>
 
-    <div class="access-grid">
-      <button onclick="abrirPanel('corralon')">
-        🏢 Soy corralón
-        <span>Subir vehículos retenidos y administrar unidades.</span>
-      </button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="mostrarAuthTab('login')">Iniciar sesión</button>
+        <button class="auth-tab" onclick="mostrarAuthTab('registro')">Crear cuenta</button>
+      </div>
 
-      <button onclick="abrirPanel('miembro')">
-        ⭐ Soy miembro premium
-        <span>Registrar autos, usar botón de pánico y beneficios.</span>
-      </button>
+      <div id="loginForm" class="auth-form active">
+        <input id="loginEmail" type="email" placeholder="Correo electrónico" />
+        <input id="loginPassword" type="password" placeholder="Contraseña" />
+        <button onclick="loginUsuario()">Entrar</button>
+      </div>
 
-      <button onclick="abrirPanel('gratis')">
-        👤 Entrar gratis
-        <span>Buscar vehículos y reportar con beneficios limitados.</span>
-      </button>
+      <div id="registroForm" class="auth-form">
+        <input id="registroNombre" type="text" placeholder="Nombre completo" />
+        <input id="registroEmail" type="email" placeholder="Correo electrónico" />
+        <input id="registroPassword" type="password" placeholder="Contraseña" />
+
+        <select id="registroTipo" onchange="mostrarCampoCodigoCorralon()">
+          <option value="gratis">Cuenta gratis</option>
+          <option value="miembro">Miembro premium</option>
+          <option value="corralon">Dueño de corralón</option>
+        </select>
+
+        <input id="codigoCorralon" type="text" placeholder="Código de autorización para corralón" style="display:none;" />
+
+        <button onclick="registrarUsuario()">Crear cuenta</button>
+      </div>
+    </div>
+
+    <div id="usuarioBox" style="display:none;">
+      <p class="modal-subtitle">
+        Sesión iniciada como: <strong id="usuarioCorreo"></strong>
+        <br />
+        Tipo de cuenta: <strong id="usuarioTipo"></strong>
+      </p>
+
+      <div class="access-grid">
+        <button id="btnPanelCorralon" onclick="abrirPanel('corralon')" style="display:none;">
+          🏢 Panel corralón
+          <span>Subir vehículos retenidos y administrar unidades.</span>
+        </button>
+
+        <button id="btnPanelMiembro" onclick="abrirPanel('miembro')" style="display:none;">
+          ⭐ Panel miembro premium
+          <span>Registrar autos, botón de pánico y beneficios.</span>
+        </button>
+
+        <button id="btnPanelGratis" onclick="abrirPanel('gratis')" style="display:none;">
+          👤 Acceso gratis
+          <span>Buscar vehículos y reportar con beneficios limitados.</span>
+        </button>
+      </div>
+
+      <button class="logout-btn" onclick="logoutUsuario()">Cerrar sesión</button>
     </div>
   </div>
 </div>
@@ -433,11 +472,11 @@
         <li>No tiene descuentos especiales.</li>
       </ul>
 
-      <button onclick="alert('Aquí iniciaremos el registro premium.')">Mejorar a premium</button>
+      <button onclick="alert('Aquí iniciaremos el pago premium.')">Mejorar a premium</button>
     </div>
   </div>
 </div>
 
-<script src="./script.js"></script>
+<script type="module" src="./script.js"></script>
 </body>
 </html>
