@@ -1,8 +1,3 @@
-let auth = null;
-let db = null;
-let usuarioActual = null;
-let tipoUsuarioActual = null;
-
 const firebaseConfig = {
   apiKey: "AIzaSyD4DcYkz6PhLSoYWkncpuXVq3NqtYka2CM",
   authDomain: "autoprotect-7dabb.firebaseapp.com",
@@ -12,25 +7,33 @@ const firebaseConfig = {
   appId: "1:583827631154:web:2904409c93b61b7114202b"
 };
 
-window.abrirModalClientes = function () {
-  window.cerrarModalClientes();
-  document.getElementById("modalClientes").classList.add("active");
-};
+firebase.initializeApp(firebaseConfig);
 
-window.cerrarModalClientes = function () {
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let usuarioActual = null;
+let tipoUsuarioActual = null;
+
+function abrirModalClientes() {
+  cerrarModalClientes();
+  document.getElementById("modalClientes").classList.add("active");
+}
+
+function cerrarModalClientes() {
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.classList.remove("active");
   });
-};
+}
 
-window.buscarVehiculo = function () {
+function buscarVehiculo() {
   alert("Búsqueda iniciada.");
-};
+}
 
-window.activarPanico = function () {
+function activarPanico() {
   if (!usuarioActual) {
     alert("Primero inicia sesión.");
-    window.abrirModalClientes();
+    abrirModalClientes();
     return;
   }
 
@@ -40,9 +43,9 @@ window.activarPanico = function () {
   }
 
   alert("Alerta activada.");
-};
+}
 
-window.mostrarAuthTab = function (tab) {
+function mostrarAuthTab(tab) {
   document.querySelectorAll(".auth-tab").forEach((btn) => {
     btn.classList.remove("active");
   });
@@ -58,19 +61,82 @@ window.mostrarAuthTab = function (tab) {
     document.querySelectorAll(".auth-tab")[1].classList.add("active");
     document.getElementById("registroForm").classList.add("active");
   }
-};
+}
 
-window.mostrarCampoCodigoCorralon = function () {
+function mostrarCampoCodigoCorralon() {
   const tipo = document.getElementById("registroTipo").value;
   const campo = document.getElementById("codigoCorralon");
 
   campo.style.display = tipo === "corralon" ? "block" : "none";
-};
+}
 
-window.abrirPanel = function (tipo) {
+async function registrarUsuario() {
+  try {
+    const nombre = document.getElementById("registroNombre").value.trim();
+    const email = document.getElementById("registroEmail").value.trim();
+    const password = document.getElementById("registroPassword").value;
+    const tipo = document.getElementById("registroTipo").value;
+    const codigo = document.getElementById("codigoCorralon").value.trim();
+
+    if (!nombre || !email || !password) {
+      alert("Completa nombre, correo y contraseña.");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("La contraseña debe tener mínimo 6 caracteres.");
+      return;
+    }
+
+    if (tipo === "corralon" && codigo !== "CORRALON2026") {
+      alert("Código de corralón incorrecto.");
+      return;
+    }
+
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+
+    await db.collection("usuarios").doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      nombre,
+      email,
+      tipo,
+      premiumActivo: tipo === "miembro",
+      corralonAutorizado: tipo === "corralon",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("Cuenta creada correctamente.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function loginUsuario() {
+  try {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    if (!email || !password) {
+      alert("Ingresa correo y contraseña.");
+      return;
+    }
+
+    await auth.signInWithEmailAndPassword(email, password);
+    alert("Sesión iniciada.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function logoutUsuario() {
+  await auth.signOut();
+  cerrarModalClientes();
+}
+
+function abrirPanel(tipo) {
   if (!usuarioActual) {
-    alert("Primero inicia sesión o crea tu cuenta.");
-    window.abrirModalClientes();
+    alert("Primero inicia sesión.");
+    abrirModalClientes();
     return;
   }
 
@@ -79,30 +145,155 @@ window.abrirPanel = function (tipo) {
     return;
   }
 
-  window.cerrarModalClientes();
+  cerrarModalClientes();
 
   if (tipo === "corralon") {
     document.getElementById("panelCorralon").classList.add("active");
+    renderCorralon();
   }
 
   if (tipo === "miembro") {
     document.getElementById("panelMiembro").classList.add("active");
+    renderMiembro();
   }
 
   if (tipo === "gratis") {
     document.getElementById("panelGratis").classList.add("active");
   }
-};
+}
 
-window.guardarAutoCorralon = function (event) {
+async function guardarAutoCorralon(event) {
   event.preventDefault();
-  alert("Vehículo de corralón listo. Después conectamos guardado en Firebase.");
-};
 
-window.guardarAutoMiembro = function (event) {
+  if (!usuarioActual || tipoUsuarioActual !== "corralon") {
+    alert("Solo una cuenta de corralón puede subir vehículos.");
+    return;
+  }
+
+  await db.collection("autosCorralon").add({
+    uid: usuarioActual.uid,
+    email: usuarioActual.email,
+    corralon: document.getElementById("corralonNombre").value,
+    municipio: document.getElementById("corralonMunicipio").value,
+    marca: document.getElementById("corralonMarca").value,
+    modelo: document.getElementById("corralonModelo").value,
+    anio: document.getElementById("corralonAnio").value,
+    placas: document.getElementById("corralonPlacas").value,
+    serie: document.getElementById("corralonSerie").value,
+    color: document.getElementById("corralonColor").value,
+    fechaIngreso: document.getElementById("corralonFecha").value,
+    masAnio: document.getElementById("corralonMasAnio").value,
+    adeudo: document.getElementById("corralonAdeudo").value,
+    estado: "retenido",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  event.target.reset();
+  renderCorralon();
+
+  alert("Vehículo guardado.");
+}
+
+async function guardarAutoMiembro(event) {
   event.preventDefault();
-  alert("Vehículo de miembro listo. Después conectamos guardado en Firebase.");
-};
+
+  if (!usuarioActual || tipoUsuarioActual !== "miembro") {
+    alert("Solo una cuenta premium puede registrar vehículos.");
+    return;
+  }
+
+  await db.collection("autosMiembro").add({
+    uid: usuarioActual.uid,
+    email: usuarioActual.email,
+    propietario: document.getElementById("miembroNombre").value,
+    telefono: document.getElementById("miembroTelefono").value,
+    marca: document.getElementById("miembroMarca").value,
+    modelo: document.getElementById("miembroModelo").value,
+    anio: document.getElementById("miembroAnio").value,
+    placas: document.getElementById("miembroPlacas").value,
+    serie: document.getElementById("miembroSerie").value,
+    color: document.getElementById("miembroColor").value,
+    estado: "protegido",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  event.target.reset();
+  renderMiembro();
+
+  alert("Vehículo guardado.");
+}
+
+async function renderCorralon() {
+  const lista = document.getElementById("listaCorralon");
+  if (!lista || !usuarioActual) return;
+
+  lista.innerHTML = "Cargando...";
+
+  const snap = await db
+    .collection("autosCorralon")
+    .where("uid", "==", usuarioActual.uid)
+    .get();
+
+  if (snap.empty) {
+    lista.innerHTML = `<p class="empty">Aún no hay vehículos subidos.</p>`;
+    return;
+  }
+
+  lista.innerHTML = "";
+
+  snap.forEach((doc) => {
+    const auto = doc.data();
+
+    lista.innerHTML += `
+      <div class="saved-item">
+        <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
+        <p><strong>Placas:</strong> ${auto.placas}</p>
+        <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
+        <p><strong>Corralón:</strong> ${auto.corralon}</p>
+        <p><strong>Municipio:</strong> ${auto.municipio}</p>
+        <p><strong>Adeudo:</strong> ${auto.adeudo || "No capturado"}</p>
+        <span class="badge ${auto.masAnio === "Sí" ? "" : "red"}">
+          ${auto.masAnio === "Sí" ? "Más de 1 año / descuento" : "Ingreso reciente"}
+        </span>
+      </div>
+    `;
+  });
+}
+
+async function renderMiembro() {
+  const lista = document.getElementById("listaMiembro");
+  if (!lista || !usuarioActual) return;
+
+  lista.innerHTML = "Cargando...";
+
+  const snap = await db
+    .collection("autosMiembro")
+    .where("uid", "==", usuarioActual.uid)
+    .get();
+
+  if (snap.empty) {
+    lista.innerHTML = `<p class="empty">Aún no tienes vehículos registrados.</p>`;
+    return;
+  }
+
+  lista.innerHTML = "";
+
+  snap.forEach((doc) => {
+    const auto = doc.data();
+
+    lista.innerHTML += `
+      <div class="saved-item">
+        <h4>${auto.marca} ${auto.modelo} ${auto.anio}</h4>
+        <p><strong>Propietario:</strong> ${auto.propietario}</p>
+        <p><strong>Teléfono:</strong> ${auto.telefono}</p>
+        <p><strong>Placas:</strong> ${auto.placas}</p>
+        <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
+        <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
+        <span class="badge">Protegido premium</span>
+      </div>
+    `;
+  });
+}
 
 function actualizarUI(user, tipo) {
   const authBox = document.getElementById("authBox");
@@ -132,117 +323,31 @@ function actualizarUI(user, tipo) {
     tipo === "gratis" ? "block" : "none";
 }
 
-async function iniciarFirebase() {
-  try {
-    const appMod = await import(
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
-    );
+auth.onAuthStateChanged(async (user) => {
+  usuarioActual = user;
 
-    const authMod = await import(
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"
-    );
-
-    const fireMod = await import(
-      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
-    );
-
-    const app = appMod.initializeApp(firebaseConfig);
-    auth = authMod.getAuth(app);
-    db = fireMod.getFirestore(app);
-
-    window.registrarUsuario = async function () {
-      try {
-        const nombre = document.getElementById("registroNombre").value.trim();
-        const email = document.getElementById("registroEmail").value.trim();
-        const password = document.getElementById("registroPassword").value;
-        const tipo = document.getElementById("registroTipo").value;
-        const codigo = document.getElementById("codigoCorralon").value.trim();
-
-        if (!nombre || !email || !password) {
-          alert("Completa nombre, correo y contraseña.");
-          return;
-        }
-
-        if (password.length < 6) {
-          alert("La contraseña debe tener mínimo 6 caracteres.");
-          return;
-        }
-
-        if (tipo === "corralon" && codigo !== "CORRALON2026") {
-          alert("Código de corralón incorrecto.");
-          return;
-        }
-
-        const cred = await authMod.createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
-        await fireMod.setDoc(fireMod.doc(db, "usuarios", cred.user.uid), {
-          uid: cred.user.uid,
-          nombre,
-          email,
-          tipo,
-          createdAt: fireMod.serverTimestamp()
-        });
-
-        alert("Cuenta creada correctamente.");
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    window.loginUsuario = async function () {
-      try {
-        const email = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPassword").value;
-
-        if (!email || !password) {
-          alert("Ingresa correo y contraseña.");
-          return;
-        }
-
-        await authMod.signInWithEmailAndPassword(auth, email, password);
-        alert("Sesión iniciada.");
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    window.logoutUsuario = async function () {
-      await authMod.signOut(auth);
-    };
-
-    authMod.onAuthStateChanged(auth, async (user) => {
-      usuarioActual = user;
-
-      if (!user) {
-        tipoUsuarioActual = null;
-        actualizarUI(null, null);
-        return;
-      }
-
-      const ref = fireMod.doc(db, "usuarios", user.uid);
-      const snap = await fireMod.getDoc(ref);
-
-      const data = snap.exists() ? snap.data() : { tipo: "gratis" };
-
-      tipoUsuarioActual = data.tipo;
-      actualizarUI(user, tipoUsuarioActual);
-    });
-  } catch (error) {
-    console.error(error);
-    alert("Firebase no cargó. Revisa que Email/Password esté activado.");
+  if (!user) {
+    tipoUsuarioActual = null;
+    actualizarUI(null, null);
+    return;
   }
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-  iniciarFirebase();
+  const snap = await db.collection("usuarios").doc(user.uid).get();
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      window.cerrarModalClientes();
-    }
-  });
+  if (!snap.exists) {
+    tipoUsuarioActual = "gratis";
+    actualizarUI(user, "gratis");
+    return;
+  }
+
+  const data = snap.data();
+  tipoUsuarioActual = data.tipo;
+
+  actualizarUI(user, tipoUsuarioActual);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    cerrarModalClientes();
+  }
 });
