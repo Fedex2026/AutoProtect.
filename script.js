@@ -646,6 +646,9 @@ function abrirComunidad() {
 
   cortarListenerVista();
 
+  const listaAnterior = document.getElementById("listaReportesComunidad");
+  if (listaAnterior) listaAnterior.remove();
+
   contenedor.innerHTML = `
     <article class="vehicle-card">
       <span class="premium">👥 COMUNIDAD</span>
@@ -679,8 +682,8 @@ function abrirComunidad() {
 
   listenerVistaActual = db.collection("reportesComunidad")
     .onSnapshot((snapshot) => {
-      const listaAnterior = document.getElementById("listaReportesComunidad");
-      if (listaAnterior) listaAnterior.remove();
+      const listaVieja = document.getElementById("listaReportesComunidad");
+      if (listaVieja) listaVieja.remove();
 
       const lista = document.createElement("div");
       lista.id = "listaReportesComunidad";
