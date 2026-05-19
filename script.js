@@ -13,6 +13,7 @@ let usuarioActual = null;
 let tipoUsuarioActual = null;
 let contenidoOriginalCards = "";
 let listenerVistaActual = null;
+let autosMemoria = {};
 
 try {
   firebase.initializeApp(firebaseConfig);
@@ -264,42 +265,65 @@ function cortarListenerVista() {
   }
 }
 
-function obtenerPrimeraFoto(auto) {
+function escapeHtml(texto) {
+  if (texto === null || texto === undefined) return "";
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function obtenerFotos(auto) {
   const fotos = Array.isArray(auto.fotos) ? auto.fotos : [];
 
   if (fotos.length > 0) {
-    if (typeof fotos[0] === "string") return fotos[0];
-    if (fotos[0]?.url) return fotos[0].url;
-    if (fotos[0]?.uri) return fotos[0].uri;
+    return fotos.map((foto) => {
+      if (typeof foto === "string") return foto;
+      if (foto?.url) return foto.url;
+      if (foto?.uri) return foto.uri;
+      return "";
+    }).filter(Boolean);
   }
 
-  if (auto.foto) return auto.foto;
-  if (auto.fotoUrl) return auto.fotoUrl;
-  if (auto.imagen) return auto.imagen;
-  if (auto.imagenUrl) return auto.imagenUrl;
+  if (auto.foto) return [auto.foto];
+  if (auto.fotoUrl) return [auto.fotoUrl];
+  if (auto.imagen) return [auto.imagen];
+  if (auto.imagenUrl) return [auto.imagenUrl];
+
+  return [];
+}
+
+function obtenerPrimeraFoto(auto) {
+  const fotos = obtenerFotos(auto);
+
+  if (fotos.length > 0) return fotos[0];
 
   return "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80";
 }
 
 function valorAuto(auto, campos, defecto) {
   for (const campo of campos) {
-    if (auto[campo]) return auto[campo];
+    if (auto[campo] !== undefined && auto[campo] !== null && auto[campo] !== "") return auto[campo];
   }
   return defecto;
 }
 
-function formatearFecha(auto) {
-  const fecha = auto.fecha || auto.createdAt || auto.fechaCreacion;
-
+function formatearFechaValor(fecha) {
   if (!fecha) return "Sin fecha";
 
   if (fecha.toDate) {
-    return fecha.toDate().toLocaleDateString("es-MX");
+    return fecha.toDate().toLocaleString("es-MX");
   }
 
   if (typeof fecha === "string") return fecha;
 
   return "Sin fecha";
+}
+
+function formatearFecha(auto) {
+  return formatearFechaValor(auto.fecha || auto.createdAt || auto.fechaCreacion);
 }
 
 function activarTabPorTexto(textoBuscado) {
@@ -312,6 +336,13 @@ function activarTabPorTexto(textoBuscado) {
     const texto = a.textContent.trim().toLowerCase();
     a.classList.toggle("active", texto.includes(textoBuscado));
   });
+}
+
+function guardarAutoMemoria(id, auto, tipo) {
+  autosMemoria[id] = {
+    ...auto,
+    __tipo: tipo
+  };
 }
 
 /* CONTADORES FIREBASE */
@@ -348,7 +379,9 @@ function cargarContadoresFirebase() {
 }
 
 /* CARD */
-function crearCardAuto(auto, tipo) {
+function crearCardAuto(auto, tipo, id) {
+  guardarAutoMemoria(id, auto, tipo);
+
   const primeraFoto = obtenerPrimeraFoto(auto);
 
   const placas = valorAuto(auto, ["placas", "placa"], "Sin placas");
@@ -378,20 +411,20 @@ function crearCardAuto(auto, tipo) {
     <article class="vehicle-card">
       ${
         destacado
-          ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${destacado}</span>`
+          ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${escapeHtml(destacado)}</span>`
           : `<span class="premium">${etiqueta}</span>`
       }
 
-      <img src="${primeraFoto}" alt="auto" />
+      <img src="${escapeHtml(primeraFoto)}" alt="auto" />
 
       <h3>${titulo}</h3>
-      <p><strong>Placas:</strong> ${placas}</p>
-      <p><strong>Serie:</strong> ${serie}</p>
-      <p><strong>Marca:</strong> ${marca}</p>
-      <p><strong>Submarca:</strong> ${submarca}</p>
-      <p><strong>Color:</strong> ${color}</p>
-      <p><strong>Estado:</strong> ${estado}</p>
-      <p><strong>Fecha:</strong> ${fecha}</p>
+      <p><strong>Placas:</strong> ${escapeHtml(placas)}</p>
+      <p><strong>Serie:</strong> ${escapeHtml(serie)}</p>
+      <p><strong>Marca:</strong> ${escapeHtml(marca)}</p>
+      <p><strong>Submarca:</strong> ${escapeHtml(submarca)}</p>
+      <p><strong>Color:</strong> ${escapeHtml(color)}</p>
+      <p><strong>Estado:</strong> ${escapeHtml(estado)}</p>
+      <p><strong>Fecha:</strong> ${escapeHtml(fecha)}</p>
 
       ${
         auto.recompensa || auto.tieneRecompensa
@@ -399,9 +432,104 @@ function crearCardAuto(auto, tipo) {
           : ""
       }
 
-      <button>Ver detalles</button>
+      <button class="btn-detalle-auto" data-auto-id="${escapeHtml(id)}">Ver detalles</button>
     </article>
   `;
+}
+
+/* DETALLES */
+function cerrarDetalleAuto() {
+  document.getElementById("modalDetalleAuto")?.classList.remove("active");
+}
+
+function abrirDetalleAuto(id) {
+  const auto = autosMemoria[id];
+
+  if (!auto) {
+    alert("No se encontró la información del reporte.");
+    return;
+  }
+
+  const modal = document.getElementById("modalDetalleAuto");
+  const titulo = document.getElementById("detalleTitulo");
+  const contenido = document.getElementById("detalleAutoContenido");
+
+  if (!modal || !contenido) return;
+
+  let tipoTitulo = "Detalle del reporte";
+
+  if (auto.__tipo === "autosRobados") tipoTitulo = "Detalle de auto robado";
+  if (auto.__tipo === "localizados") tipoTitulo = "Detalle de auto localizado";
+  if (auto.__tipo === "recuperados") tipoTitulo = "Detalle de auto recuperado";
+
+  if (titulo) titulo.innerText = tipoTitulo;
+
+  const fotos = obtenerFotos(auto);
+  const latitud = valorAuto(auto, ["latitud", "latitude", "lat"], "");
+  const longitud = valorAuto(auto, ["longitud", "longitude", "lng"], "");
+
+  const mapa =
+    latitud && longitud
+      ? `https://www.google.com/maps?q=${encodeURIComponent(latitud + "," + longitud)}`
+      : "";
+
+  contenido.innerHTML = `
+    <div class="panel-layout">
+      <div class="list-card">
+        <h3>Fotos del reporte</h3>
+        ${
+          fotos.length > 0
+            ? fotos.map((foto) => `
+              <img src="${escapeHtml(foto)}" alt="foto reporte" style="width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin-bottom:12px;">
+            `).join("")
+            : `<p>No hay fotos disponibles.</p>`
+        }
+      </div>
+
+      <div class="list-card">
+        <h3>Información completa</h3>
+
+        <p><strong>Placas:</strong> ${escapeHtml(valorAuto(auto, ["placas", "placa"], "Sin placas"))}</p>
+        <p><strong>Serie / VIN:</strong> ${escapeHtml(valorAuto(auto, ["serie", "vin"], "Sin serie"))}</p>
+        <p><strong>Marca:</strong> ${escapeHtml(valorAuto(auto, ["marca"], "Sin marca"))}</p>
+        <p><strong>Submarca / Modelo:</strong> ${escapeHtml(valorAuto(auto, ["submarca", "modelo"], "Sin submarca"))}</p>
+        <p><strong>Color:</strong> ${escapeHtml(valorAuto(auto, ["color"], "Sin color"))}</p>
+        <p><strong>Estado / Ubicación:</strong> ${escapeHtml(valorAuto(auto, ["estado", "ubicacion", "municipio"], "Sin estado"))}</p>
+        <p><strong>Fecha:</strong> ${escapeHtml(formatearFecha(auto))}</p>
+        <p><strong>Lugar destacado:</strong> ${escapeHtml(valorAuto(auto, ["lugarDestacado", "lugar", "posicion"], "No"))}</p>
+        <p><strong>Recompensa:</strong> ${auto.recompensa || auto.tieneRecompensa ? "Sí" : "No"}</p>
+        <p><strong>Monto recompensa:</strong> ${escapeHtml(valorAuto(auto, ["montoRecompensa", "recompensaMonto", "monto"], "Confidencial"))}</p>
+        <p><strong>Latitud:</strong> ${escapeHtml(latitud || "Sin latitud")}</p>
+        <p><strong>Longitud:</strong> ${escapeHtml(longitud || "Sin longitud")}</p>
+
+        ${
+          mapa
+            ? `<button onclick="window.open('${mapa}', '_blank')">Abrir ubicación en Google Maps</button>`
+            : ""
+        }
+      </div>
+    </div>
+
+    <div class="list-card" style="margin-top:18px;">
+      <h3>Datos técnicos guardados</h3>
+      ${
+        Object.keys(auto)
+          .filter((key) => key !== "__tipo" && key !== "fotos")
+          .map((key) => {
+            const value = auto[key];
+            let text = "";
+
+            if (value && value.toDate) text = value.toDate().toLocaleString("es-MX");
+            else if (typeof value === "object") text = JSON.stringify(value);
+            else text = String(value);
+
+            return `<p><strong>${escapeHtml(key)}:</strong> ${escapeHtml(text)}</p>`;
+          }).join("")
+      }
+    </div>
+  `;
+
+  modal.classList.add("active");
 }
 
 /* INICIO */
@@ -442,18 +570,18 @@ function cargarVistaInicioFirebase() {
           <h3>ROBO ACTIVADO</h3>
           <p>Alerta enviada desde AutoProtect</p>
           <div class="map-circle">📍</div>
-          <small>${primerAuto?.estado || "Ubicación no disponible"}</small>
+          <small>${escapeHtml(primerAuto?.estado || "Ubicación no disponible")}</small>
         </article>
       `;
 
       snapshot.forEach((doc) => {
-        contenedor.innerHTML += crearCardAuto(doc.data(), "autosRobados");
+        contenedor.innerHTML += crearCardAuto(doc.data(), "autosRobados", "inicio_autosRobados_" + doc.id);
       });
 
       contenedor.innerHTML += `
         <article class="reward-card">
           <span>★ RECOMPENSA OFRECIDA</span>
-          <h3>${primerAuto?.montoRecompensa ? "$" + primerAuto.montoRecompensa + " MXN" : "CONFIDENCIAL"}</h3>
+          <h3>${primerAuto?.montoRecompensa ? "$" + escapeHtml(primerAuto.montoRecompensa) + " MXN" : "CONFIDENCIAL"}</h3>
           <p>A quien proporcione información que ayude a recuperarlo.</p>
           <div class="money-icon">$</div>
           <small>Se mantiene en anonimato 100% confidencial</small>
@@ -487,7 +615,7 @@ function abrirColeccion(nombreColeccion, tipo, tituloVacio) {
       }
 
       snapshot.forEach((doc) => {
-        contenedor.innerHTML += crearCardAuto(doc.data(), tipo);
+        contenedor.innerHTML += crearCardAuto(doc.data(), tipo, nombreColeccion + "_" + doc.id);
       });
     });
 }
@@ -507,6 +635,122 @@ function abrirRecuperados() {
   abrirColeccion("recuperados", "recuperados", "Autos recuperados");
 }
 
+/* COMUNIDAD */
+function abrirComunidad() {
+  if (!db) return;
+
+  activarTabPorTexto("comunidad");
+
+  const contenedor = document.getElementById("cardsRowAutos");
+  if (!contenedor) return;
+
+  cortarListenerVista();
+
+  contenedor.innerHTML = `
+    <article class="vehicle-card">
+      <span class="premium">👥 COMUNIDAD</span>
+      <h3>Reporte ciudadano</h3>
+      <p>Comparte información si viste un auto sospechoso, abandonado o relacionado con un reporte.</p>
+
+      <input id="comunidadNombre" placeholder="Nombre o anónimo" style="width:100%;margin-bottom:10px;">
+      <input id="comunidadZona" placeholder="Zona / Municipio / Estado" style="width:100%;margin-bottom:10px;">
+      <input id="comunidadPlacas" placeholder="Placas si las tienes" style="width:100%;margin-bottom:10px;">
+      <textarea id="comunidadMensaje" placeholder="Describe lo que viste" style="width:100%;min-height:100px;margin-bottom:10px;"></textarea>
+
+      <button onclick="guardarReporteComunidad()">Enviar reporte</button>
+    </article>
+
+    <article class="status-card red">
+      <span class="tag">IMPORTANTE</span>
+      <h3>Reporta sin exponerte</h3>
+      <p>No confrontes a nadie. Solo comparte ubicación, placas, color, marca o fotografías si es seguro.</p>
+      <div class="map-circle">📍</div>
+      <small>Tu reporte puede ayudar a recuperar un vehículo.</small>
+    </article>
+
+    <article class="reward-card">
+      <span>★ APOYO CIUDADANO</span>
+      <h3>Comunidad activa</h3>
+      <p>Más ojos en la calle aumentan la posibilidad de localizar autos robados.</p>
+      <div class="money-icon">+</div>
+      <small>Reportes ciudadanos y anónimos.</small>
+    </article>
+  `;
+
+  listenerVistaActual = db.collection("reportesComunidad")
+    .onSnapshot((snapshot) => {
+      const listaAnterior = document.getElementById("listaReportesComunidad");
+      if (listaAnterior) listaAnterior.remove();
+
+      const lista = document.createElement("div");
+      lista.id = "listaReportesComunidad";
+      lista.className = "cards-row";
+
+      if (snapshot.empty) {
+        lista.innerHTML = `
+          <article class="vehicle-card">
+            <h3>Reportes de comunidad</h3>
+            <p>No hay reportes ciudadanos todavía.</p>
+          </article>
+        `;
+      } else {
+        snapshot.forEach((doc) => {
+          const r = doc.data();
+
+          lista.innerHTML += `
+            <article class="vehicle-card">
+              <span class="premium">👥 REPORTE CIUDADANO</span>
+              <h3>${escapeHtml(r.zona || "Zona no especificada")}</h3>
+              <p><strong>Nombre:</strong> ${escapeHtml(r.nombre || "Anónimo")}</p>
+              <p><strong>Placas:</strong> ${escapeHtml(r.placas || "Sin placas")}</p>
+              <p><strong>Mensaje:</strong> ${escapeHtml(r.mensaje || "Sin mensaje")}</p>
+              <p><strong>Fecha:</strong> ${escapeHtml(formatearFechaValor(r.createdAt))}</p>
+            </article>
+          `;
+        });
+      }
+
+      contenedor.insertAdjacentElement("afterend", lista);
+    });
+}
+
+async function guardarReporteComunidad() {
+  try {
+    if (!db) {
+      alert("Firebase no cargó correctamente.");
+      return;
+    }
+
+    const nombre = document.getElementById("comunidadNombre")?.value.trim() || "Anónimo";
+    const zona = document.getElementById("comunidadZona")?.value.trim() || "";
+    const placas = document.getElementById("comunidadPlacas")?.value.trim() || "";
+    const mensaje = document.getElementById("comunidadMensaje")?.value.trim() || "";
+
+    if (!zona || !mensaje) {
+      alert("Escribe al menos zona y mensaje.");
+      return;
+    }
+
+    await db.collection("reportesComunidad").add({
+      nombre,
+      zona,
+      placas,
+      mensaje,
+      estado: "pendiente",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById("comunidadNombre").value = "";
+    document.getElementById("comunidadZona").value = "";
+    document.getElementById("comunidadPlacas").value = "";
+    document.getElementById("comunidadMensaje").value = "";
+
+    alert("Reporte enviado correctamente.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
 /* BOTONES GENERALES */
 document.addEventListener("DOMContentLoaded", () => {
   const contenedor = document.getElementById("cardsRowAutos");
@@ -519,6 +763,14 @@ document.addEventListener("DOMContentLoaded", () => {
   cargarVistaInicioFirebase();
 
   document.body.addEventListener("click", (e) => {
+    const detalleBtn = e.target.closest(".btn-detalle-auto");
+    if (detalleBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      abrirDetalleAuto(detalleBtn.dataset.autoId);
+      return;
+    }
+
     const statBtn = e.target.closest(".stat button");
     if (statBtn) {
       e.preventDefault();
@@ -571,7 +823,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (texto.includes("comunidad")) {
-        alert("Abriendo sección: Comunidad");
+        abrirComunidad();
         return;
       }
 
@@ -614,7 +866,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (texto.includes("comunidad")) {
-        alert("Abriendo pestaña: Comunidad");
+        abrirComunidad();
         return;
       }
     }
@@ -627,7 +879,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const detalle = e.target.closest(".vehicle-card button");
     if (detalle) {
-      alert("Aquí se abrirán los detalles completos del vehículo.");
       return;
     }
 
@@ -641,6 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       cerrarModalClientes();
+      cerrarDetalleAuto();
     }
   });
 });
