@@ -12,6 +12,7 @@ let db = null;
 let usuarioActual = null;
 let tipoUsuarioActual = null;
 let contenidoOriginalCards = "";
+let listenerVistaActual = null;
 
 try {
   firebase.initializeApp(firebaseConfig);
@@ -255,6 +256,64 @@ if (auth && db) {
   });
 }
 
+/* UTILIDADES */
+function cortarListenerVista() {
+  if (listenerVistaActual) {
+    listenerVistaActual();
+    listenerVistaActual = null;
+  }
+}
+
+function obtenerPrimeraFoto(auto) {
+  const fotos = Array.isArray(auto.fotos) ? auto.fotos : [];
+
+  if (fotos.length > 0) {
+    if (typeof fotos[0] === "string") return fotos[0];
+    if (fotos[0]?.url) return fotos[0].url;
+    if (fotos[0]?.uri) return fotos[0].uri;
+  }
+
+  if (auto.foto) return auto.foto;
+  if (auto.fotoUrl) return auto.fotoUrl;
+  if (auto.imagen) return auto.imagen;
+  if (auto.imagenUrl) return auto.imagenUrl;
+
+  return "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80";
+}
+
+function valorAuto(auto, campos, defecto) {
+  for (const campo of campos) {
+    if (auto[campo]) return auto[campo];
+  }
+  return defecto;
+}
+
+function formatearFecha(auto) {
+  const fecha = auto.fecha || auto.createdAt || auto.fechaCreacion;
+
+  if (!fecha) return "Sin fecha";
+
+  if (fecha.toDate) {
+    return fecha.toDate().toLocaleDateString("es-MX");
+  }
+
+  if (typeof fecha === "string") return fecha;
+
+  return "Sin fecha";
+}
+
+function activarTabPorTexto(textoBuscado) {
+  document.querySelectorAll(".tabs button").forEach((btn) => {
+    const texto = btn.textContent.trim().toLowerCase();
+    btn.classList.toggle("active", texto.includes(textoBuscado));
+  });
+
+  document.querySelectorAll(".nav a").forEach((a) => {
+    const texto = a.textContent.trim().toLowerCase();
+    a.classList.toggle("active", texto.includes(textoBuscado));
+  });
+}
+
 /* CONTADORES FIREBASE */
 function cargarContadoresFirebase() {
   if (!db) return;
@@ -288,26 +347,67 @@ function cargarContadoresFirebase() {
   });
 }
 
-/* UTILIDAD FOTO */
-function obtenerPrimeraFoto(auto) {
-  const fotos = Array.isArray(auto.fotos) ? auto.fotos : [];
+/* CARD */
+function crearCardAuto(auto, tipo) {
+  const primeraFoto = obtenerPrimeraFoto(auto);
 
-  if (fotos.length > 0) {
-    if (typeof fotos[0] === "string") return fotos[0];
-    if (fotos[0].url) return fotos[0].url;
-    if (fotos[0].uri) return fotos[0].uri;
+  const placas = valorAuto(auto, ["placas", "placa"], "Sin placas");
+  const serie = valorAuto(auto, ["serie", "vin"], "Sin serie");
+  const marca = valorAuto(auto, ["marca"], "Sin marca");
+  const submarca = valorAuto(auto, ["submarca", "modelo"], "Sin submarca");
+  const color = valorAuto(auto, ["color"], "Sin color");
+  const estado = valorAuto(auto, ["estado", "ubicacion", "municipio"], "Sin estado");
+  const fecha = formatearFecha(auto);
+
+  let etiqueta = "🚨 AUTO ROBADO";
+  let titulo = "Vehículo robado";
+
+  if (tipo === "localizados") {
+    etiqueta = "📍 AUTO LOCALIZADO";
+    titulo = "Vehículo localizado";
   }
 
-  if (auto.foto) return auto.foto;
-  if (auto.fotoUrl) return auto.fotoUrl;
-  if (auto.imagen) return auto.imagen;
-  if (auto.imagenUrl) return auto.imagenUrl;
+  if (tipo === "recuperados") {
+    etiqueta = "✅ AUTO RECUPERADO";
+    titulo = "Vehículo recuperado";
+  }
 
-  return "https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80";
+  const destacado = auto.lugarDestacado || auto.lugar || auto.posicion;
+
+  return `
+    <article class="vehicle-card">
+      ${
+        destacado
+          ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${destacado}</span>`
+          : `<span class="premium">${etiqueta}</span>`
+      }
+
+      <img src="${primeraFoto}" alt="auto" />
+
+      <h3>${titulo}</h3>
+      <p><strong>Placas:</strong> ${placas}</p>
+      <p><strong>Serie:</strong> ${serie}</p>
+      <p><strong>Marca:</strong> ${marca}</p>
+      <p><strong>Submarca:</strong> ${submarca}</p>
+      <p><strong>Color:</strong> ${color}</p>
+      <p><strong>Estado:</strong> ${estado}</p>
+      <p><strong>Fecha:</strong> ${fecha}</p>
+
+      ${
+        auto.recompensa || auto.tieneRecompensa
+          ? `<p style="color:gold;font-weight:bold;">🏆 Recompensa ofrecida</p>`
+          : ""
+      }
+
+      <button>Ver detalles</button>
+    </article>
+  `;
 }
 
 /* INICIO */
 function mostrarInicio() {
+  cortarListenerVista();
+
   const contenedor = document.getElementById("cardsRowAutos");
   if (!contenedor) return;
 
@@ -315,68 +415,45 @@ function mostrarInicio() {
     contenedor.innerHTML = contenidoOriginalCards;
   }
 
-  cargarAutosRobadosFirebase();
+  activarTabPorTexto("inicio");
+  cargarVistaInicioFirebase();
 }
 
-/* AUTOS ROBADOS FIREBASE */
-function cargarAutosRobadosFirebase() {
+function cargarVistaInicioFirebase() {
   if (!db) return;
 
   const contenedor = document.getElementById("cardsRowAutos");
   if (!contenedor) return;
 
-  db.collection("autosRobados")
-    .limit(3)
+  cortarListenerVista();
+
+  listenerVistaActual = db.collection("autosRobados")
+    .limit(2)
     .onSnapshot((snapshot) => {
       if (snapshot.empty) return;
 
       contenedor.innerHTML = "";
 
-      let primero = true;
+      const primerAuto = snapshot.docs[0]?.data();
+
+      contenedor.innerHTML += `
+        <article class="status-card red">
+          <span class="tag">EN VIVO</span>
+          <h3>ROBO ACTIVADO</h3>
+          <p>Alerta enviada desde AutoProtect</p>
+          <div class="map-circle">📍</div>
+          <small>${primerAuto?.estado || "Ubicación no disponible"}</small>
+        </article>
+      `;
 
       snapshot.forEach((doc) => {
-        const auto = doc.data();
-        const primeraFoto = obtenerPrimeraFoto(auto);
-
-        if (primero) {
-          contenedor.innerHTML += `
-            <article class="status-card red">
-              <span class="tag">EN VIVO</span>
-              <h3>ROBO ACTIVADO</h3>
-              <p>Alerta enviada desde AutoProtect</p>
-              <div class="map-circle">📍</div>
-              <small>${auto.estado || "Ubicación no disponible"}</small>
-            </article>
-          `;
-          primero = false;
-        }
-
-        contenedor.innerHTML += `
-          <article class="vehicle-card">
-            ${
-              auto.lugarDestacado
-                ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${auto.lugarDestacado}</span>`
-                : `<span class="premium">👑 LUGAR PRIVILEGIADO</span>`
-            }
-
-            <img src="${primeraFoto}" alt="auto" />
-
-            <h3>Vehículo robado</h3>
-            <p><strong>Placas:</strong> ${auto.placas || "Sin placas"}</p>
-            <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-            <p><strong>Marca:</strong> ${auto.marca || "Sin marca"}</p>
-            <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-            <button>Ver detalles</button>
-          </article>
-        `;
+        contenedor.innerHTML += crearCardAuto(doc.data(), "autosRobados");
       });
-
-      const primerDoc = snapshot.docs[0]?.data();
 
       contenedor.innerHTML += `
         <article class="reward-card">
           <span>★ RECOMPENSA OFRECIDA</span>
-          <h3>${primerDoc?.montoRecompensa ? "$" + primerDoc.montoRecompensa + " MXN" : "CONFIDENCIAL"}</h3>
+          <h3>${primerAuto?.montoRecompensa ? "$" + primerAuto.montoRecompensa + " MXN" : "CONFIDENCIAL"}</h3>
           <p>A quien proporcione información que ayude a recuperarlo.</p>
           <div class="money-icon">$</div>
           <small>Se mantiene en anonimato 100% confidencial</small>
@@ -385,259 +462,179 @@ function cargarAutosRobadosFirebase() {
     });
 }
 
-/* LISTA AUTOS ROBADOS */
+/* LISTAS */
+function abrirColeccion(nombreColeccion, tipo, tituloVacio) {
+  if (!db) return;
+
+  const contenedor = document.getElementById("cardsRowAutos");
+  if (!contenedor) return;
+
+  cortarListenerVista();
+  contenedor.innerHTML = "";
+
+  listenerVistaActual = db.collection(nombreColeccion)
+    .onSnapshot((snapshot) => {
+      contenedor.innerHTML = "";
+
+      if (snapshot.empty) {
+        contenedor.innerHTML = `
+          <article class="vehicle-card">
+            <h3>${tituloVacio}</h3>
+            <p>No hay registros todavía.</p>
+          </article>
+        `;
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        contenedor.innerHTML += crearCardAuto(doc.data(), tipo);
+      });
+    });
+}
+
 function abrirAutosRobados() {
-  if (!db) return;
-
-  const contenedor = document.getElementById("cardsRowAutos");
-  if (!contenedor) return;
-
-  contenedor.innerHTML = "";
-
-  db.collection("autosRobados")
-    .onSnapshot((snapshot) => {
-      contenedor.innerHTML = "";
-
-      if (snapshot.empty) {
-        contenedor.innerHTML = `
-          <article class="vehicle-card">
-            <h3>Autos robados</h3>
-            <p>No hay autos robados registrados.</p>
-          </article>
-        `;
-        return;
-      }
-
-      snapshot.forEach((doc) => {
-        const auto = doc.data();
-        const primeraFoto = obtenerPrimeraFoto(auto);
-
-        contenedor.innerHTML += `
-          <article class="vehicle-card">
-            ${
-              auto.lugarDestacado
-                ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${auto.lugarDestacado}</span>`
-                : `<span class="premium">🚨 AUTO ROBADO</span>`
-            }
-
-            <img src="${primeraFoto}" alt="auto" />
-
-            <h3>Vehículo robado</h3>
-            <p><strong>Placas:</strong> ${auto.placas || "Sin placas"}</p>
-            <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-            <p><strong>Marca:</strong> ${auto.marca || "Sin marca"}</p>
-            <p><strong>Submarca:</strong> ${auto.submarca || "Sin submarca"}</p>
-            <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-            <p><strong>Estado:</strong> ${auto.estado || "Sin estado"}</p>
-            <button>Ver detalles</button>
-          </article>
-        `;
-      });
-    });
+  activarTabPorTexto("autos robados");
+  abrirColeccion("autosRobados", "autosRobados", "Autos robados");
 }
 
-/* LISTA LOCALIZADOS */
 function abrirLocalizados() {
-  if (!db) return;
-
-  const contenedor = document.getElementById("cardsRowAutos");
-  if (!contenedor) return;
-
-  contenedor.innerHTML = "";
-
-  db.collection("localizados")
-    .onSnapshot((snapshot) => {
-      contenedor.innerHTML = "";
-
-      if (snapshot.empty) {
-        contenedor.innerHTML = `
-          <article class="vehicle-card">
-            <h3>Autos localizados</h3>
-            <p>No hay autos localizados registrados.</p>
-          </article>
-        `;
-        return;
-      }
-
-      snapshot.forEach((doc) => {
-        const auto = doc.data();
-        const primeraFoto = obtenerPrimeraFoto(auto);
-
-        contenedor.innerHTML += `
-          <article class="vehicle-card">
-            <span class="premium">📍 AUTO LOCALIZADO</span>
-
-            <img src="${primeraFoto}" alt="auto" />
-
-            <h3>Vehículo localizado</h3>
-            <p><strong>Placas:</strong> ${auto.placas || "Sin placas"}</p>
-            <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-            <p><strong>Marca:</strong> ${auto.marca || "Sin marca"}</p>
-            <p><strong>Submarca:</strong> ${auto.submarca || "Sin submarca"}</p>
-            <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-            <p><strong>Estado:</strong> ${auto.estado || "Sin estado"}</p>
-            <button>Ver detalles</button>
-          </article>
-        `;
-      });
-    });
+  activarTabPorTexto("localizados");
+  abrirColeccion("localizados", "localizados", "Autos localizados");
 }
 
-/* LISTA RECUPERADOS */
 function abrirRecuperados() {
-  if (!db) return;
-
-  const contenedor = document.getElementById("cardsRowAutos");
-  if (!contenedor) return;
-
-  contenedor.innerHTML = "";
-
-  db.collection("recuperados")
-    .onSnapshot((snapshot) => {
-      contenedor.innerHTML = "";
-
-      if (snapshot.empty) {
-        contenedor.innerHTML = `
-          <article class="vehicle-card">
-            <h3>Autos recuperados</h3>
-            <p>No hay autos recuperados registrados.</p>
-          </article>
-        `;
-        return;
-      }
-
-      snapshot.forEach((doc) => {
-        const auto = doc.data();
-        const primeraFoto = obtenerPrimeraFoto(auto);
-
-        contenedor.innerHTML += `
-          <article class="vehicle-card">
-            <span class="premium">✅ AUTO RECUPERADO</span>
-
-            <img src="${primeraFoto}" alt="auto" />
-
-            <h3>Vehículo recuperado</h3>
-            <p><strong>Placas:</strong> ${auto.placas || "Sin placas"}</p>
-            <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
-            <p><strong>Marca:</strong> ${auto.marca || "Sin marca"}</p>
-            <p><strong>Submarca:</strong> ${auto.submarca || "Sin submarca"}</p>
-            <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
-            <p><strong>Estado:</strong> ${auto.estado || "Sin estado"}</p>
-            <button>Ver detalles</button>
-          </article>
-        `;
-      });
-    });
+  activarTabPorTexto("recuperados");
+  abrirColeccion("recuperados", "recuperados", "Autos recuperados");
 }
 
 /* BOTONES GENERALES */
 document.addEventListener("DOMContentLoaded", () => {
   const contenedor = document.getElementById("cardsRowAutos");
+
   if (contenedor) {
     contenidoOriginalCards = contenedor.innerHTML;
   }
 
   cargarContadoresFirebase();
-  cargarAutosRobadosFirebase();
+  cargarVistaInicioFirebase();
 
   document.body.addEventListener("click", (e) => {
-    const nav = e.target.closest(".nav a");
-    if (nav) {
-      e.preventDefault();
-
-      document.querySelectorAll(".nav a").forEach((a) => a.classList.remove("active"));
-      nav.classList.add("active");
-
-      const texto = nav.textContent.trim().toLowerCase();
-
-      if (texto.includes("inicio")) {
-        mostrarInicio();
-      }
-
-      if (texto.includes("autos robados")) {
-        abrirAutosRobados();
-      }
-
-      if (texto.includes("localizados")) {
-        abrirLocalizados();
-      }
-
-      if (texto.includes("recuperados")) {
-        abrirRecuperados();
-      }
-
-      if (texto.includes("comunidad")) {
-        alert("Abriendo sección: Comunidad");
-      }
-
-      if (texto.includes("cómo funciona")) {
-        alert("Abriendo sección: Cómo funciona");
-      }
-
-      if (texto.includes("contacto")) {
-        alert("Abriendo sección: Contacto");
-      }
-    }
-
-    const tab = e.target.closest(".tabs button");
-    if (tab) {
-      document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
-      tab.classList.add("active");
-
-      const texto = tab.textContent.trim().toLowerCase();
-
-      if (texto.includes("inicio")) {
-        mostrarInicio();
-      }
-
-      if (texto.includes("autos robados")) {
-        abrirAutosRobados();
-      }
-
-      if (texto.includes("localizados")) {
-        abrirLocalizados();
-      }
-
-      if (texto.includes("recuperados")) {
-        abrirRecuperados();
-      }
-
-      if (texto.includes("comunidad")) {
-        alert("Abriendo pestaña: Comunidad");
-      }
-    }
-
     const statBtn = e.target.closest(".stat button");
     if (statBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+
       const stat = statBtn.closest(".stat");
       const texto = stat?.innerText.toLowerCase() || "";
 
       if (texto.includes("autos robados")) {
         abrirAutosRobados();
+        return;
       }
 
       if (texto.includes("localizados")) {
         abrirLocalizados();
+        return;
       }
 
       if (texto.includes("recuperados")) {
         abrirRecuperados();
+        return;
+      }
+    }
+
+    const nav = e.target.closest(".nav a");
+    if (nav) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const texto = nav.textContent.trim().toLowerCase();
+
+      if (texto.includes("inicio")) {
+        mostrarInicio();
+        return;
+      }
+
+      if (texto.includes("autos robados")) {
+        abrirAutosRobados();
+        return;
+      }
+
+      if (texto.includes("localizados")) {
+        abrirLocalizados();
+        return;
+      }
+
+      if (texto.includes("recuperados")) {
+        abrirRecuperados();
+        return;
+      }
+
+      if (texto.includes("comunidad")) {
+        alert("Abriendo sección: Comunidad");
+        return;
+      }
+
+      if (texto.includes("cómo funciona")) {
+        alert("Abriendo sección: Cómo funciona");
+        return;
+      }
+
+      if (texto.includes("contacto")) {
+        alert("Abriendo sección: Contacto");
+        return;
+      }
+    }
+
+    const tab = e.target.closest(".tabs button");
+    if (tab) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const texto = tab.textContent.trim().toLowerCase();
+
+      if (texto.includes("inicio")) {
+        mostrarInicio();
+        return;
+      }
+
+      if (texto.includes("autos robados")) {
+        abrirAutosRobados();
+        return;
+      }
+
+      if (texto.includes("localizados")) {
+        abrirLocalizados();
+        return;
+      }
+
+      if (texto.includes("recuperados")) {
+        abrirRecuperados();
+        return;
+      }
+
+      if (texto.includes("comunidad")) {
+        alert("Abriendo pestaña: Comunidad");
+        return;
       }
     }
 
     const corralon = e.target.closest(".corralon-card button");
     if (corralon) {
       alert("Buscando vehículos en este corralón.");
+      return;
     }
 
     const detalle = e.target.closest(".vehicle-card button");
     if (detalle) {
       alert("Aquí se abrirán los detalles completos del vehículo.");
+      return;
     }
 
     const contacto = e.target.closest(".contact-grid button");
     if (contacto) {
       alert("Conectando con la central de AutoProtect.");
+      return;
     }
   });
 
