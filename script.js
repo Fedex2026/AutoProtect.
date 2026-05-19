@@ -254,8 +254,119 @@ if (auth && db) {
   });
 }
 
+/* CONTADORES FIREBASE */
+function cargarContadoresFirebase() {
+  if (!db) return;
+
+  db.collection("autosRobados").onSnapshot((snapshot) => {
+    const total = snapshot.size.toLocaleString("es-MX");
+
+    const totalRobados = document.getElementById("totalRobados");
+    const footerRobados = document.getElementById("footerRobados");
+
+    if (totalRobados) totalRobados.innerText = total;
+    if (footerRobados) footerRobados.innerText = "+" + total;
+  });
+
+  db.collection("localizados").onSnapshot((snapshot) => {
+    const total = snapshot.size.toLocaleString("es-MX");
+
+    const totalLocalizados = document.getElementById("totalLocalizados");
+
+    if (totalLocalizados) totalLocalizados.innerText = total;
+  });
+
+  db.collection("recuperados").onSnapshot((snapshot) => {
+    const total = snapshot.size.toLocaleString("es-MX");
+
+    const totalRecuperados = document.getElementById("totalRecuperados");
+    const footerRecuperados = document.getElementById("footerRecuperados");
+
+    if (totalRecuperados) totalRecuperados.innerText = total;
+    if (footerRecuperados) footerRecuperados.innerText = "+" + total;
+  });
+}
+
+/* AUTOS ROBADOS FIREBASE */
+function cargarAutosRobadosFirebase() {
+  if (!db) return;
+
+  const contenedor = document.getElementById("cardsRowAutos");
+  if (!contenedor) return;
+
+  db.collection("autosRobados")
+    .limit(3)
+    .onSnapshot((snapshot) => {
+      if (snapshot.empty) return;
+
+      contenedor.innerHTML = "";
+
+      let primero = true;
+
+      snapshot.forEach((doc) => {
+        const auto = doc.data();
+        const fotos = Array.isArray(auto.fotos) ? auto.fotos : [];
+        const primeraFoto =
+          fotos.length > 0
+            ? (typeof fotos[0] === "string" ? fotos[0] : fotos[0].url)
+            : "";
+
+        if (primero) {
+          contenedor.innerHTML += `
+            <article class="status-card red">
+              <span class="tag">EN VIVO</span>
+              <h3>ROBO ACTIVADO</h3>
+              <p>Alerta enviada desde AutoProtect</p>
+              <div class="map-circle">📍</div>
+              <small>${auto.estado || "Ubicación no disponible"}</small>
+            </article>
+          `;
+          primero = false;
+        }
+
+        contenedor.innerHTML += `
+          <article class="vehicle-card">
+            ${
+              auto.lugarDestacado
+                ? `<span class="premium">👑 LUGAR PRIVILEGIADO #${auto.lugarDestacado}</span>`
+                : `<span class="premium">👑 LUGAR PRIVILEGIADO</span>`
+            }
+
+            ${
+              primeraFoto
+                ? `<img src="${primeraFoto}" alt="auto" />`
+                : `<img src="https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=800&q=80" alt="auto" />`
+            }
+
+            <h3>Vehículo robado</h3>
+            <p><strong>Placas:</strong> ${auto.placas || "Sin placas"}</p>
+            <p><strong>Serie:</strong> ${auto.serie || "Sin serie"}</p>
+            <p><strong>Marca:</strong> ${auto.marca || "Sin marca"}</p>
+            <p><strong>Color:</strong> ${auto.color || "Sin color"}</p>
+            <button>Ver detalles</button>
+          </article>
+        `;
+      });
+
+      const primerDoc = snapshot.docs[0]?.data();
+
+      contenedor.innerHTML += `
+        <article class="reward-card">
+          <span>★ RECOMPENSA OFRECIDA</span>
+          <h3>${primerDoc?.montoRecompensa ? "$" + primerDoc.montoRecompensa + " MXN" : "CONFIDENCIAL"}</h3>
+          <p>A quien proporcione información que ayude a recuperarlo.</p>
+          <div class="money-icon">$</div>
+          <small>Se mantiene en anonimato 100% confidencial</small>
+        </article>
+      `;
+    });
+}
+
 /* BOTONES GENERALES */
 document.addEventListener("DOMContentLoaded", () => {
+  cargarContadoresFirebase();
+  cargarAutosRobadosFirebase();
+
   document.body.addEventListener("click", (e) => {
     const nav = e.target.closest(".nav a");
     if (nav) {
