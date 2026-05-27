@@ -192,14 +192,121 @@ function abrirPanel(tipo) {
 }
 
 /* GUARDADOS */
-function guardarAutoCorralon(event) {
+async function guardarAutoCorralon(event) {
   event.preventDefault();
-  alert("Vehículo de corralón listo para guardar.");
+
+  try {
+    if (!auth || !db) {
+      alert("Firebase no cargó correctamente.");
+      return;
+    }
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Primero inicia sesión como corralón.");
+      abrirModalClientes();
+      return;
+    }
+
+    const marca = document.getElementById("corralonMarca")?.value.trim() || "";
+    const modelo = document.getElementById("corralonModelo")?.value.trim() || "";
+    const anio = document.getElementById("corralonAnio")?.value.trim() || "";
+    const color = document.getElementById("corralonColor")?.value.trim() || "";
+    const placas = document.getElementById("corralonPlacas")?.value.trim() || "";
+    const serie = document.getElementById("corralonSerie")?.value.trim() || "";
+    const municipio = document.getElementById("corralonMunicipio")?.value.trim() || "";
+    const adeudo = document.getElementById("corralonAdeudo")?.value.trim() || "";
+    const masDeUnAnio = document.getElementById("corralonMasDeUnAnio")?.value || "";
+    const nombreCorralon = document.getElementById("corralonNombre")?.value.trim() || "Corralón";
+
+    if (!marca || !modelo || !placas || !municipio) {
+      alert("Completa marca, modelo, placas y municipio.");
+      return;
+    }
+
+    await db.collection("autosCorralon").add({
+      marca,
+      modelo,
+      anio,
+      color,
+      placas,
+      serie,
+      municipio,
+      adeudo,
+      masDeUnAnio,
+      nombreCorralon,
+      duenoUid: user.uid,
+      emailDueno: user.email,
+      visibleCliente: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("Vehículo guardado correctamente en corralón.");
+    event.target.reset();
+
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function guardarAutoMiembro(event) {
   event.preventDefault();
   alert("Vehículo de miembro listo para guardar.");
+}
+
+/* VER AUTOS DE CORRALÓN PARA CLIENTES */
+function buscarVehiculosCorralon() {
+  if (!db) {
+    alert("Firebase no cargó correctamente.");
+    return;
+  }
+
+  const contenedor = document.getElementById("cardsRowAutos");
+  if (!contenedor) return;
+
+  cortarListenerVista();
+
+  contenedor.innerHTML = "";
+
+  listenerVistaActual = db.collection("autosCorralon")
+    .where("visibleCliente", "==", true)
+    .onSnapshot((snapshot) => {
+      contenedor.innerHTML = "";
+
+      if (snapshot.empty) {
+        contenedor.innerHTML = `
+          <article class="vehicle-card">
+            <h3>Sin vehículos en corralón</h3>
+            <p>No hay autos registrados todavía.</p>
+          </article>
+        `;
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const auto = doc.data();
+
+        contenedor.innerHTML += `
+          <article class="vehicle-card">
+            <span class="premium">🏢 AUTO EN CORRALÓN</span>
+
+            <h3>${escapeHtml(auto.marca || "")} ${escapeHtml(auto.modelo || "")}</h3>
+
+            <p><strong>Placas:</strong> ${escapeHtml(auto.placas || "Sin placas")}</p>
+            <p><strong>Serie:</strong> ${escapeHtml(auto.serie || "Sin serie")}</p>
+            <p><strong>Año:</strong> ${escapeHtml(auto.anio || "Sin año")}</p>
+            <p><strong>Color:</strong> ${escapeHtml(auto.color || "Sin color")}</p>
+            <p><strong>Municipio:</strong> ${escapeHtml(auto.municipio || "Sin municipio")}</p>
+            <p><strong>Corralón:</strong> ${escapeHtml(auto.nombreCorralon || "Sin nombre")}</p>
+            <p><strong>Adeudo:</strong> ${escapeHtml(auto.adeudo || "Sin adeudo")}</p>
+            <p><strong>Más de un año:</strong> ${escapeHtml(auto.masDeUnAnio || "No")}</p>
+          </article>
+        `;
+      });
+    }, (error) => {
+      alert(error.message);
+    });
 }
 
 /* UI LOGIN */
@@ -876,7 +983,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const corralon = e.target.closest(".corralon-card button");
     if (corralon) {
-      alert("Buscando vehículos en este corralón.");
+      e.preventDefault();
+      e.stopPropagation();
+      buscarVehiculosCorralon();
       return;
     }
 
